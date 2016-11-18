@@ -1,9 +1,12 @@
+#!/usr/bin python3
+
 # Prototype of
 # Expansion tree as described in 2010-2011.
 # Mining Cross Graph Quasi-Biclique for
 # Financial Stock and Ratios
 
-A = [0,1,2]
+#A = [0,1,2,3,4,5,6,7,8]
+A = range(0,1)
 B = [3,4,5]
 msv = 1
 msu = 1
