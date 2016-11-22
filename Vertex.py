@@ -2,7 +2,7 @@
 
 # Class Vertex
 # for MiQuBic
-import Edge
+# import Edge
 
 
 class Vertex(object):
@@ -13,10 +13,18 @@ class Vertex(object):
         # ArrayList < HashMap < Node, Edge >> adjLists = new  ArrayList < HashMap < Node, Edge >> ();
 
     def __str__(self):
-        return str(self.vertex_id)+""
+        if self.type_of_vertex == "a":
+            return str(self.vertex_id) + "*"  # Vertex type U
+        return str(self.vertex_id)+"+"  # Vertex type V
 
     def __repr__(self):
         return self.__str__()
+
+    def __eq__(self, other):
+        return (self.vertex_id == other.vertex_id) and (self.type_of_vertex == other.type_of_vertex)
+
+    def __hash__(self):
+        return hash("x" * self.vertex_id)
 
     def initialize(self, graph_dimensionality):
         self.adjLists = [{}, {}]
@@ -32,7 +40,7 @@ class Vertex(object):
         return 0
 
     def get_edges(self, di):
-        return self.adjLists[di]
+        return self.adjLists[di]  # returns a dictionary (key->dim values: <Edges>
 
     def get_edge_to(self, di, neighbor):
         return self.adjLists[di][neighbor]
@@ -54,7 +62,7 @@ class Vertex(object):
         return False
 
     def max_total_degree(self, di, restriction):
-        degree=0
+        degree = 0
         for neighbor in self.get_neighbors(di):
             if neighbor not in restriction:
                 continue
