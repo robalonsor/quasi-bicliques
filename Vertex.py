@@ -9,7 +9,7 @@ class Vertex(object):
     def __init__(self, vertex_id, type_of_vertex):
         self.vertex_id = vertex_id
         self.type_of_vertex = type_of_vertex.lower()
-        self.adjLists = [{}, {}]
+        self.adjLists = [{}, {}]  # One adj list per graph/dimension
         # ArrayList < HashMap < Node, Edge >> adjLists = new  ArrayList < HashMap < Node, Edge >> ();
 
     def __str__(self):
@@ -40,7 +40,7 @@ class Vertex(object):
         return 0
 
     def get_edges(self, di):
-        return self.adjLists[di]  # returns a dictionary (key->dim values: <Edges>
+        return self.adjLists[di]  # returns a dictionary (key (node)->dim values: <Edges>
 
     def get_edge_to(self, di, neighbor):
         return self.adjLists[di][neighbor]

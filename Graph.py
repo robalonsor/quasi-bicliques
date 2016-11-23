@@ -24,6 +24,10 @@ class Graph(object):
     def __repr__(self):
         return self.__str__()
 
+    # to_dict_of_lists is a function that receives # of dimension
+    # returns: a dictionary of lists
+    #          representing the graph in dimension <di>
+    #          This can be used as the input of networkx
     def to_dict_of_lists(self, di):
         dol = {}
         for v in self.vertices:
@@ -89,59 +93,92 @@ class Graph(object):
     def set_vertices(self, vertices):
         self.vertices = vertices
 
-import matplotlib.pyplot as plt
-import networkx as nx
+# import matplotlib.pyplot as plt
+# import networkx as nx
+#
+# g1 = Graph(2)
+# v1 = Vertex(1, "A")
+# v2 = Vertex(2, "B")
+# e = Edge(v1, v2, 100)
+#
+# v1.add_edge(0,e)
+# v2.add_edge(0,e)
+# g1.add_vertex(v1)
+# g1.add_vertex(v2)
+#
+# v1 = Vertex(3, "A")
+# v2 = Vertex(4, "B")
+# e = Edge(v1, v2, 200)
+# v1.add_edge(0,e)
+# v2.add_edge(0,e)
+#
+# g1.add_vertex(v1)
+# g1.add_vertex(v2)
+#
+# v1 = Vertex(1, "A")
+# # v2 = Vertex(4, "B")
+# e = Edge(v1, v2, 50)
+# v1.add_edge(0, e)
+# v2.add_edge(0, e)
+#
+# g1.add_vertex(v1)
+# g1.add_vertex(v2)
+#
+# print(g1.get_edges(0))
+#
+# x = g1.to_dict_of_lists(0)
+# G=nx.Graph(x)
+# plt.title('Graph | dimension: '+str(0))
+# nx.draw(G, pos=nx.spring_layout(G), with_labels=True)
+#
+# plt.show()
+
+# g1 = Graph(2)
+#
+# v1 = Vertex(1, "A")
+# v5 = Vertex(5, "A")
+#
+# v2 = Vertex(2, "B")
+# v3 = Vertex(3, "B")
+# v4 = Vertex(4, "B")
+#
+# e = Edge(v1, v2, 100)
+# e2 = Edge(v1, v3, 100)
+# e3 = Edge(v3, v5, 100)
+# e4 = Edge(v5, v4, 100)
+# e5 = Edge(v5,v2,100)
+# e6 = Edge(v1,v4,100)
+# v1.add_edge(0, e)
+# v2.add_edge(0, e)
+#
+# v1.add_edge(0,e2)
+# v3.add_edge(0,e2)
+#
+# # v3.add_edge(0,e3)
+# # v5.add_edge(0,e3)
+#
+# v5.add_edge(0,e4)
+# v4.add_edge(0,e4)
+#
+# v5.add_edge(0,e5)
+# v2.add_edge(0,e5)
+#
+# v1.add_edge(0,e6)
+# v4.add_edge(0,e6)
+#
+# g1.add_vertex(v1)
+# g1.add_vertex(v2)
+# g1.add_vertex(v3)
+# g1.add_vertex(v4)
+# g1.add_vertex(v5)
+#
+# e_dim2 = Edge(v3,v5,55)
+# v3.add_edge(1,e_dim2)
+# v5.add_edge(1,e_dim2)
 
 
+#print(x)
 
-g1 = Graph(2)
-
-v1 = Vertex(1, "A")
-v5 = Vertex(5, "A")
-
-v2 = Vertex(2, "B")
-v3 = Vertex(3, "B")
-v4 = Vertex(4, "B")
-
-e = Edge(v1, v2, 100)
-e2 = Edge(v1, v3, 100)
-e3 = Edge(v3, v5, 100)
-e4 = Edge(v5, v4, 100)
-e5 = Edge(v5,v2,100)
-e6 = Edge(v1,v4,100)
-v1.add_edge(0, e)
-v2.add_edge(0, e)
-
-v1.add_edge(0,e2)
-v3.add_edge(0,e2)
-
-v3.add_edge(0,e3)
-v5.add_edge(0,e3)
-
-v5.add_edge(0,e4)
-v4.add_edge(0,e4)
-
-v5.add_edge(0,e5)
-v2.add_edge(0,e5)
-
-v1.add_edge(0,e6)
-v4.add_edge(0,e6)
-
-g1.add_vertex(v1)
-g1.add_vertex(v2)
-g1.add_vertex(v3)
-g1.add_vertex(v4)
-g1.add_vertex(v5)
-
-print(g1)
-x = g1.to_dict_of_lists(0)
-G=nx.Graph(x)
-nx.draw(G,pos=nx.spring_layout(G))
-
-plt.show()
-
-print(x)
-
-print(v1, v2)
-print(v1 != v2)
+#print(v1, v2)
+#print(v1 != v2)
 
