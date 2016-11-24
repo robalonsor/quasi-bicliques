@@ -43,6 +43,8 @@ class Vertex(object):
         return self.adjLists[di]  # returns a dictionary (key (node)->dim values: <Edges>
 
     def get_edge_to(self, di, neighbor):
+        if neighbor not in self.adjLists[di]:
+            return
         return self.adjLists[di][neighbor]
 
     def get_neighbors(self, di):

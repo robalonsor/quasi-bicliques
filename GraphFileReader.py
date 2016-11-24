@@ -89,15 +89,17 @@ class GraphFileReader(object):
         # v2.add_edge(0,e)
         # g1.add_vertex(v1)
         # g1.add_vertex(v2)
-        #
 
-        # import matplotlib.pyplot as plt
-        # nx.draw(G, pos=nx.spring_layout(G), with_labels=True)
-        # plt.show()
+
+
 
 # g_reader = GraphFileReader("datasets/bipartite.graphml")
 # g_reader.generate_graph()
 # g = g_reader.graph
+# #
+# G = nx.Graph(g.to_dict_of_lists(0))
 #
-
+# import matplotlib.pyplot as plt
+# nx.draw(G, pos=nx.spring_layout(G), with_labels=True)
+# plt.show()
 

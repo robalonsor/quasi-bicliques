@@ -6,7 +6,7 @@ from Vertex import Vertex
 class Graph(object):
     def __init__(self, dimensionality):
         self.dimensionality = dimensionality  # an integer rep. num. of graphs, default: 2
-        self.vertices = []
+        self.vertices = set()
 
     def __str__(self):
         s = "\n"
@@ -53,6 +53,16 @@ class Graph(object):
                     dol[small_id] = [large_id]
         return dol  # dict of list (#key->vertex id: value -> adj. list)
 
+    def split_vertices(self):
+        set_a = set()
+        set_b = set()
+        for v in self.vertices:
+            if v.type_of_vertex == "a":
+                set_a.add(v)
+            else:
+                set_b.add(v)
+        return [set_a, set_b]
+
     def get_vertices(self):
         return self.vertices
 
@@ -63,7 +73,7 @@ class Graph(object):
         return
 
     def add_vertex(self, vertex):
-        self.vertices.append(vertex)
+        self.vertices.add(vertex)
 
     def add_edge(self, dimension, v1, v2, value):
         e = Edge(v1, v2, value)
@@ -72,6 +82,8 @@ class Graph(object):
         return e
 
     def get_edges(self, di):
+        # Returns: A list with edges
+
         list_of_edges = []
         for v in self.vertices:
             for neighbor in v.get_neighbors(di):
