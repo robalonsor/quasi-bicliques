@@ -8,23 +8,35 @@
 from GraphFileReader import GraphFileReader
 from Vertex import Vertex
 from Cluster import Cluster
+import PruneTechniques
 
-msv = 2
-msu = 2
+##
+# Pruning based in the 'interestingness' of the QBC
+# msu controls the min. number of vertices type u
+# msv controls the min. number of vertices type v
+msv = 2  # First pruning technique.
+msu = 2  # First pruning technique.
+##
 
+# Relative size of the QBC
 g_min = 0.5  # Gamma min
 l_min = 0.5  # Lambda min
 
-c = 0
-check = 0
+c = 0  # Number of expansions performed
+check = 0  # Number of visits to Enumeration Tree (to check for clusters)
 
-clusterList = []
+clusterList = []  # List containing the clusters found
+
 
 def miqu(U, V, candU, candV, _type, g):
     global c
     global check
     c += 1
     print(_type, U, V, "Cand_sets = ", candU, candV, "-*-")
+
+    PruneTechniques.prune_vertices(U, V, g)
+
+
     if len(U) >= msu and len(V) >= msv:
         try:
             check += 1
@@ -32,7 +44,7 @@ def miqu(U, V, candU, candV, _type, g):
             vertices_by_type = g.split_vertices()  # a list with two positions [setA, setB]
             vertices_a = vertices_by_type[0]
             vertices_b = vertices_by_type[1]
-            print("\t", vertices_a, vertices_b)  # delete
+            # print("\t", vertices_a, vertices_b)  # delete
 
             #  First check
             gamma_min_edges = round(len(U)*g_min, 0)  # min number of edges to be a QBC
@@ -52,7 +64,7 @@ def miqu(U, V, candU, candV, _type, g):
                     if e is None:
                         # raise Exception("No such edge, between ", u_in_g, v_in_g)
                         continue
-                    print(e)
+                    # print(e)
                     u_edges += 1
                     if u_edges >= gamma_min_edges:  # reached the ideal number of edges for the vertex u
                         break  # optimization, no need to check further if curr. state is QBC
@@ -74,7 +86,7 @@ def miqu(U, V, candU, candV, _type, g):
                     if e is None:
                         # raise Exception("No such edge, between ", u_in_g, v_in_g)
                         continue
-                    print(e)
+                    # print(e)
                     v_edges += 1
                     if v_edges >= lambda_min_edges: # reached the ideal number of edges for vertex v
                         break
@@ -83,13 +95,13 @@ def miqu(U, V, candU, candV, _type, g):
 
             # if u_edges >= gamma_min_edges and v_edges >= lambda_min_edges:
             # at this point there is no way U, V are not a cluster
-            print("Cluster!! ")
+            print("\tCluster! ")
             # clusterList.append([U, V])
             clusterList.append(Cluster(U, V))
             # at this point we are sure that u,v are in the graph
 
         except Exception as er:
-            print(er, "!!!!")
+            print("\t", er, "!!!!")
         finally:
             pass
 
@@ -166,6 +178,7 @@ g_reader = GraphFileReader("datasets/bipartite.graphml")
 g_reader.generate_graph()
 g = g_reader.graph
 # print(g)
+
 AB = g.split_vertices()
 
 A = AB[0]
@@ -189,4 +202,7 @@ miqu([], [], A, B, "U-V", g)
 print("*************\nNumber of visits to enum. tree", c)
 print("Number of actual checks (for cluster)", check)
 print("The following clusters have been found:  ")
-print(clusterList)
+# print(clusterList)
+for c in clusterList:
+    print(c)
+# print([''.join(each) for each in clusterList])

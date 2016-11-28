@@ -2,6 +2,7 @@
 from Edge import Edge
 from Vertex import Vertex
 
+# General Graph class for Bipartite and non-bipartite graphs
 
 class Graph(object):
     def __init__(self, dimensionality):
