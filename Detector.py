@@ -1,15 +1,16 @@
 #!/usr/bin python3
 
-# Expansion tree as described in 2010-2011.
+# Enumeration tree expansion tree inspired in
 # Mining Cross Graph Quasi-Biclique for
 # Financial Stock and Ratios
 
 # A = [0,1,2,3,4,5,6,7,8]
 from GraphFileReader import GraphFileReader
 from Vertex import Vertex
+from Cluster import Cluster
 
-msv = 1
-msu = 1
+msv = 2
+msu = 2
 
 g_min = 0.5  # Gamma min
 l_min = 0.5  # Lambda min
@@ -23,23 +24,22 @@ def miqu(U, V, candU, candV, _type, g):
     global c
     global check
     c += 1
-    print(_type, U, V, "Cand_sets = ", candU, candV,"-*-")
+    print(_type, U, V, "Cand_sets = ", candU, candV, "-*-")
     if len(U) >= msu and len(V) >= msv:
         try:
             check += 1
-            print("\tLooking for cluser in: ", U, V)
+            print("\tLooking for cluster in: ", U, V)
             vertices_by_type = g.split_vertices()  # a list with two positions [setA, setB]
             vertices_a = vertices_by_type[0]
             vertices_b = vertices_by_type[1]
             print("\t", vertices_a, vertices_b)  # delete
 
             #  First check
-            gamma_min_edges = round(len(U)*g_min,0)  # min number of edges
-            lambda_min_edges = round(len(V)*l_min,0)  # min number of edges
-            u_edges = 0
-            v_edges = 0
+            gamma_min_edges = round(len(U)*g_min, 0)  # min number of edges to be a QBC
+            lambda_min_edges = round(len(V)*l_min, 0)  # min number of edges to be a QBC
 
             for u in U:
+                u_edges = 0
                 if Vertex(u, "a") not in vertices_a:
                     raise Exception("Vertex", u, " not in list of vertices")
                 for v in V:
@@ -50,30 +50,42 @@ def miqu(U, V, candU, candV, _type, g):
                     e = u_in_g.get_edge_to(0, v_in_g)
                     # e = u_in_g.get_edge_to(0, Vertex(5, "b"))
                     if e is None:
-                        raise Exception("No such edge")
+                        # raise Exception("No such edge, between ", u_in_g, v_in_g)
+                        continue
                     print(e)
                     u_edges += 1
-                    if u_edges >= gamma_min_edges: # reached the ideal number of edges
-                        break
+                    if u_edges >= gamma_min_edges:  # reached the ideal number of edges for the vertex u
+                        break  # optimization, no need to check further if curr. state is QBC
+
+                if u_edges < gamma_min_edges:
+                    raise Exception("One vertex from U (", u, ") w/o enough edges to form a QBC with", v)
+
                     # retrieve element
-            print("Num of u edges", u_edges)
-            # u and v are in in G
+            # print("Num of u edges", u_edges)
+            # at this point,
+            # u and v are in in G or CC
             for v in V:
+                v_edges = 0
                 for u in U:
                     u_in_g = {x for x in vertices_a if x == Vertex(u, "a")}.pop()
                     v_in_g = {x for x in vertices_b if x == Vertex(v, "b")}.pop()
                     e = u_in_g.get_edge_to(0, v_in_g)
                     # e = u_in_g.get_edge_to(0, Vertex(5, "b"))
                     if e is None:
-                        raise Exception("No such edge")
+                        # raise Exception("No such edge, between ", u_in_g, v_in_g)
+                        continue
                     print(e)
                     v_edges += 1
-                    if v_edges >= lambda_min_edges: # reached the ideal number of edges
+                    if v_edges >= lambda_min_edges: # reached the ideal number of edges for vertex v
                         break
+                if v_edges < lambda_min_edges:  # if the min # of edges v is less than v_edge, v cannot be part of a QBC
+                    raise Exception("One vertex from V (", v, ") w/o enough edges to form a QBC with ", u)
 
-            if u_edges >= gamma_min_edges and v_edges >= lambda_min_edges:
-                print("Cluster!! ")
-                clusterList.append([U,V])
+            # if u_edges >= gamma_min_edges and v_edges >= lambda_min_edges:
+            # at this point there is no way U, V are not a cluster
+            print("Cluster!! ")
+            # clusterList.append([U, V])
+            clusterList.append(Cluster(U, V))
             # at this point we are sure that u,v are in the graph
 
         except Exception as er:
