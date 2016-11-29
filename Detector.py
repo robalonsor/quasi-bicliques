@@ -9,6 +9,8 @@ from GraphFileReader import GraphFileReader
 from Vertex import Vertex
 from Cluster import Cluster
 import PruneTechniques
+import time  # Only works in Linux
+
 
 ##
 # Pruning based in the 'interestingness' of the QBC
@@ -34,8 +36,7 @@ def miqu(U, V, candU, candV, _type, g):
     c += 1
     print(_type, U, V, "Cand_sets = ", candU, candV, "-*-")
 
-    PruneTechniques.prune_vertices(U, V, g)
-
+    # U, V = PruneTechniques.prune_vertices(U, V, g)
 
     if len(U) >= msu and len(V) >= msv:
         try:
@@ -67,7 +68,7 @@ def miqu(U, V, candU, candV, _type, g):
                     # print(e)
                     u_edges += 1
                     if u_edges >= gamma_min_edges:  # reached the ideal number of edges for the vertex u
-                        break  # optimization, no need to check further if curr. state is QBC
+                        break  # optimization, no need to check further if curr. belongs to a QBC
 
                 if u_edges < gamma_min_edges:
                     raise Exception("One vertex from U (", u, ") w/o enough edges to form a QBC with", v)
@@ -197,11 +198,14 @@ print(B)
 #exit()
 # A = [0, 1]
 # B = [2, 3, 4]
-
+elapsed_time = time.clock()
 miqu([], [], A, B, "U-V", g)
+final_time = time.clock()-elapsed_time
 print("*************\nNumber of visits to enum. tree", c)
 print("Number of actual checks (for cluster)", check)
 print("The following clusters have been found:  ")
+print("Time:  ", final_time)  # Consider processing of QBC, i.e. loading time (from file to graph) not considered
+
 # print(clusterList)
 for c in clusterList:
     print(c)

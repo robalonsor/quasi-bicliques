@@ -21,7 +21,13 @@ class Vertex(object):
         return self.__str__()
 
     def __eq__(self, other):
-        return (self.vertex_id == other.vertex_id) and (self.type_of_vertex == other.type_of_vertex)
+        return self.vertex_id == other.vertex_id  #and (self.type_of_vertex == other.type_of_vertex)
+
+    def __lt__(self, other):
+        return self.vertex_id < other.vertex_id  # and (self.type_of_vertex == other.type_of_vertex)
+
+    def __gt__(self, other):
+        return self.vertex_id > other.vertex_id
 
     def __hash__(self):
         return hash("x" * self.vertex_id)

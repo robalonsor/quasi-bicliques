@@ -55,7 +55,7 @@ class GraphFileReader(object):
             print(er)
             return
 
-        print("Successfully constructed node set")
+        print("Successfully constructed vertex set")
         print(self.vertex_type_dic)
         print("Constructing edge set")
 

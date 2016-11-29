@@ -8,6 +8,7 @@ class Graph(object):
     def __init__(self, dimensionality):
         self.dimensionality = dimensionality  # an integer rep. num. of graphs, default: 2
         self.vertices = set()
+        self.prun_deg = True  # Change for properties file
 
     def __str__(self):
         s = "\n"
@@ -38,7 +39,8 @@ class Graph(object):
                 e = v.get_edges(di)[neighbor]
                 small_id = -1
                 large_id = -1
-                if e.vertex1.compare(e.vertex2) == 1:  # v1 id larger than v2
+                # if e.vertex1.compare(e.vertex2) == 1:  # v1 id larger than v2
+                if e.vertex1 > e.vertex2:  # v1 id larger than v2
                     large_id = e.vertex1.vertex_id
                     small_id = e.vertex2.vertex_id
                 else:
@@ -109,10 +111,12 @@ class Graph(object):
 # import matplotlib.pyplot as plt
 # import networkx as nx
 #
-# g1 = Graph(2)
-# v1 = Vertex(1, "A")
-# v2 = Vertex(2, "B")
-# e = Edge(v1, v2, 100)
+g1 = Graph(2)
+v1 = Vertex(1, "A")
+v2 = Vertex(2, "B")
+e = Edge(v1, v2, 100)
+
+
 #
 # v1.add_edge(0,e)
 # v2.add_edge(0,e)
