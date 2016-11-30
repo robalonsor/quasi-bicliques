@@ -3,9 +3,11 @@
 from GraphFileReader import GraphFileReader
 from Vertex import Vertex
 from Cluster import Cluster
+import networkx as nx
+import matplotlib.pyplot as plt
 
 
-def prune_vertices(U, V, g):
+def prune_vertices(U, V, candU, candV, g):
 
     # if all flags are disabled
     # flags for the pruning techniques
@@ -19,18 +21,23 @@ def prune_vertices(U, V, g):
 
     vertices_a, vertices_b = prune_based_in_degree(vertices_a, vertices_b, g)
 
-    print("****")
-    U = [u.vertex_id for u in vertices_a]
-    V = [v.vertex_id for v in vertices_b]
+    graph = nx.Graph(g.to_dict_of_lists(0))  # graph from dimension 1
+    sub_graph = graph.subgraph()
 
-    U.sort()
-    V.sort()
+    candU, candV = prune_based_in_diameter(candU, candV, graph)
+
+    print("****No more pruning for the node in enumeration tree")
+    # U = [u.vertex_id for u in vertices_a]
+    # V = [v.vertex_id for v in vertices_b]
+    #
+    # U.sort()
+    # V.sort()
+    candU.sort()
+    candV.sort()
 
     #print(g.to_dict_of_lists(0))
-
-
-    print(U, V)
-    return U, V
+    # print(U, V)
+    return candU, candV
 
 def prune_based_in_degree(vertices_a, vertices_b, g):
     keep_pruning = True  # We shall prune until no vertex is pruned
@@ -77,8 +84,26 @@ def prune_based_in_degree(vertices_a, vertices_b, g):
     return vertices_a, vertices_b
 
 
+def prune_based_in_diameter(vertices_a, vertices_b, g):
+    pass
+
 g_reader = GraphFileReader("datasets/bipartite.graphml")
 g_reader.generate_graph()
 g = g_reader.graph
-
 prune_vertices([], [], g)
+
+
+
+# G_structure = nx.Graph(g.to_dict_of_lists(0))
+#
+# for n, d in G_structure.nodes_iter(data=True):
+#     print(type(n))
+#     print(n, nx.single_source_shortest_path_length(G_structure, n, 2))
+#
+# nx.draw(G_structure, pos=nx.spring_layout(G_structure), with_labels=True)
+#
+# plt.show()
+
+
+
+

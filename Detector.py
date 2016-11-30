@@ -36,7 +36,7 @@ def miqu(U, V, candU, candV, _type, g):
     c += 1
     print(_type, U, V, "Cand_sets = ", candU, candV, "-*-")
 
-    # U, V = PruneTechniques.prune_vertices(U, V, g)
+    # candU, candV = PruneTechniques.prune_vertices(U, V, candU, candV, g)
 
     if len(U) >= msu and len(V) >= msv:
         try:
