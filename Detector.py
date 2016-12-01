@@ -1,8 +1,6 @@
 #!/usr/bin python3
 
-# Enumeration tree expansion tree inspired in
-# Mining Cross Graph Quasi-Biclique for
-# Financial Stock and Ratios
+
 
 # A = [0,1,2,3,4,5,6,7,8]
 from GraphFileReader import GraphFileReader

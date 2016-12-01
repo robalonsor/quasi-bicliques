@@ -19,19 +19,15 @@ def prune_vertices(U, V, candU, candV, g):
     vertices_a = vertices_by_type[0]
     vertices_b = vertices_by_type[1]
 
-    vertices_a, vertices_b = prune_based_in_degree(vertices_a, vertices_b, g)
+    vertices_a, vertices_b = prune_based_on_degree(vertices_a, vertices_b, g)
 
-    graph = nx.Graph(g.to_dict_of_lists(0))  # graph from dimension 1
-    sub_graph = graph.subgraph()
+    g_structure = nx.Graph(g.to_dict_of_lists(0))  # graph from dimension 1
 
-    candU, candV = prune_based_in_diameter(candU, candV, graph)
+    candU, candV = prune_based_on_diameter(U, V, candU, candV, g_structure)
 
-    print("****No more pruning for the node in enumeration tree")
-    # U = [u.vertex_id for u in vertices_a]
-    # V = [v.vertex_id for v in vertices_b]
-    #
-    # U.sort()
-    # V.sort()
+    print("****No more pruning for the node in enumeration tree****")
+    print("At the end of pruning tech. cand sets are", candU, candV)
+
     candU.sort()
     candV.sort()
 
@@ -39,15 +35,15 @@ def prune_vertices(U, V, candU, candV, g):
     # print(U, V)
     return candU, candV
 
-def prune_based_in_degree(vertices_a, vertices_b, g):
+def prune_based_on_degree(vertices_a, vertices_b, g):
     keep_pruning = True  # We shall prune until no vertex is pruned
                          # This is because deleting a vertex from G
                          # may disconnect or reduce the degree of other
                          # vertices
     while keep_pruning:
         keep_pruning = False
-        print("Before deg. prun")
-        print(vertices_a, vertices_b)
+        # print("Before deg. prun")
+        # print(vertices_a, vertices_b)
         try:
             for u in vertices_a.copy():
                 u_edges = 0
@@ -78,23 +74,42 @@ def prune_based_in_degree(vertices_a, vertices_b, g):
             print("\t", er, "!!!!")
         finally:
             pass
-        print("After deg. prun: ")
-        print(vertices_a, vertices_b)
+        # print("After deg. prun: ")
+        # print(vertices_a, vertices_b)
 
     return vertices_a, vertices_b
 
 
-def prune_based_in_diameter(vertices_a, vertices_b, g):
-    pass
+def prune_based_on_diameter(U, V, candU, candV, g_structure):
+    print("Starting pruning based on diameter")
+    print(U, V, candU, candV)
+    max_diameter = 4
+    intersection_of_vertices = set()
+    # for vertex, data in g_structure.nodes_iter(data=True):
+    for vertex in U+V:
+        neighbors_of_v = nx.single_source_shortest_path(g_structure, vertex, max_diameter)
+        if intersection_of_vertices:
+            # compute new intersection of vertices
+            intersection_of_vertices = intersection_of_vertices.intersection(neighbors_of_v)
+        else:
+            intersection_of_vertices = set(neighbors_of_v.keys())
+    print("After computing diameter the intersection of vertices is: ")
+    print(intersection_of_vertices)
+    print("Deleting candidates not in the intersection")
+    print("Current candidates", candU, candV)
+    candU = [item for item in candU if item in intersection_of_vertices]
+    candV = [item for item in candV if item in intersection_of_vertices]
+    print("After diam. prun. candidates are: ", candU, candV)
+    return candU, candV
 
 g_reader = GraphFileReader("datasets/bipartite.graphml")
 g_reader.generate_graph()
 g = g_reader.graph
-prune_vertices([], [], g)
+# diameter pruning test
+prune_vertices([7, 8], [6, 9], [1, 3, 5], [2, 4], g)
 
+# prune_vertices([], [], [], [], g)
 
-
-# G_structure = nx.Graph(g.to_dict_of_lists(0))
 #
 # for n, d in G_structure.nodes_iter(data=True):
 #     print(type(n))
