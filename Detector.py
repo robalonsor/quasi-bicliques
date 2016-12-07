@@ -189,7 +189,9 @@ def miqu(U, V, candU, candV, _type, g):
         candU.pop(0)
         i += 1
 
-g_reader = GraphFileReader("datasets/bipartite_toy2.graphml")
+# g_reader = GraphFileReader("datasets/bipartite_toy2.graphml")
+g_reader = GraphFileReader("datasets/amazon.graphml")
+
 g_reader.generate_graph()
 g = g_reader.graph
 # print(g)
