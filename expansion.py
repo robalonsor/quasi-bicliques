@@ -6,8 +6,8 @@
 # Financial Stock and Ratios
 
 # A = [0,1,2,3,4,5,6,7,8]
-A = [0,1]
-B = [3, 4, 5]
+A = [1, 3, 5, 7, 8]
+B = [2, 4, 6, 9]
 msv = 1
 msu = 1
 

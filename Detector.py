@@ -1,5 +1,6 @@
 #!/usr/bin python3
-
+# WARNING! Looking for QBC size 2 weight 2
+# will produce an error
 
 
 # A = [0,1,2,3,4,5,6,7,8]
@@ -8,6 +9,7 @@ from Vertex import Vertex
 from Cluster import Cluster
 import PruneTechniques
 import time  # Only works in Linux
+import networkx as nx
 
 
 ##
@@ -27,17 +29,31 @@ check = 0  # Number of visits to Enumeration Tree (to check for clusters)
 
 clusterList = []  # List containing the clusters found
 
-
 def miqu(U, V, candU, candV, _type, g):
     global c
     global check
     c += 1
     print(_type, U, V, "Cand_sets = ", candU, candV, "-*-")
 
-    # candU, candV = PruneTechniques.prune_vertices(U, V, candU, candV, g)
-
     if len(U) >= msu and len(V) >= msv:
+        # Pruning candidates when we have reached the minimum size constraint
         try:
+            # check for connectedness of U+V. Since a QBC should be connected
+            G = nx.Graph(g.to_dict_of_lists(0))
+            H = G.subgraph(U + V)
+            if not nx.is_connected(H):
+                raise Exception("Vertices U and V are not connected, so they cannot be part of an interesting QBC")
+
+            candU, candV, fail_flag = PruneTechniques.prune_vertices(U, V, candU, candV, g)
+            if fail_flag:
+                # something went wrong when pruning. e.g. a node is disconnected from G
+                raise Exception("The current node in SET won't form a cluster")
+
+
+            # Pruning technique. If |U|+|cand_set_U| >= msu then might be a cluster else no way!
+            if len(U) + len(candU) < msu or len(V) + len(candV) < msv:
+                # there might be a cluster
+                pass
             check += 1
             print("\tLooking for cluster in: ", U, V)
             vertices_by_type = g.split_vertices()  # a list with two positions [setA, setB]
@@ -72,6 +88,7 @@ def miqu(U, V, candU, candV, _type, g):
                     raise Exception("One vertex from U (", u, ") w/o enough edges to form a QBC with", v)
 
                     # retrieve element
+
             # print("Num of u edges", u_edges)
             # at this point,
             # u and v are in in G or CC
@@ -120,7 +137,7 @@ def miqu(U, V, candU, candV, _type, g):
             i += 1
             if copyOfU[-1] < copyOfU[-2]:
                 continue
-            miqu(copyOfU, V, copyOfCandU, [], "U",g)
+            miqu(copyOfU, V, copyOfCandU, [], "U", g)
     # V-expansion
     if len(U) >= msu:
         i = 0
@@ -134,7 +151,7 @@ def miqu(U, V, candU, candV, _type, g):
             i += 1
             if copyOfV[-1] < copyOfV[-2]:
                 continue
-            miqu(U, copyOfV, [], copyOfCandV, "V",g)
+            miqu(U, copyOfV, [], copyOfCandV, "V", g)
     i = 0
     while i < len(candU):
         j = 0
@@ -167,13 +184,12 @@ def miqu(U, V, candU, candV, _type, g):
                     break
             # print "----> ", candU, candV
             miqu(copyOfU, copyOfV, copyOfCandU, copyOfCandV, "U-V",g)
-
             j += 1
         i -= 1
         candU.pop(0)
         i += 1
 
-g_reader = GraphFileReader("datasets/bipartite.graphml")
+g_reader = GraphFileReader("datasets/bipartite_toy2.graphml")
 g_reader.generate_graph()
 g = g_reader.graph
 # print(g)
@@ -192,18 +208,20 @@ A.sort()
 
 print(A)
 print(B)
-#print("printing", list(str(A).replace('*','').replace('{','').replace(',','').replace('}','').replace(' ','')))
-#exit()
+total_a = len(A)
+total_b = len(B)
 # A = [0, 1]
 # B = [2, 3, 4]
 elapsed_time = time.clock()
 miqu([], [], A, B, "U-V", g)
 final_time = time.clock()-elapsed_time
+total_combinations = (2**total_a-1)*(2**total_b-1)
+print("************\nTheoretical number of combinations to be explored", total_combinations)
 print("*************\nNumber of visits to enum. tree", c)
 print("Number of actual checks (for cluster)", check)
 print("The following clusters have been found:  ")
 print("Time:  ", final_time)  # Consider processing of QBC, i.e. loading time (from file to graph) not considered
-
+print("Rules actividated: \nMinimum size of the QBC for U and V\nDiamaeter pruning of cand sets")
 # print(clusterList)
 for c in clusterList:
     print(c)
