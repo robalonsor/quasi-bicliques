@@ -16,8 +16,8 @@ import networkx as nx
 # Pruning based in the 'interestingness' of the QBC
 # msu controls the min. number of vertices type u
 # msv controls the min. number of vertices type v
-msv = 2  # First pruning technique.
-msu = 2  # First pruning technique.
+msv = 10  # First pruning technique.
+msu = 10  # First pruning technique.
 ##
 
 # Relative size of the QBC
@@ -50,7 +50,6 @@ def miqu(U, V, candU, candV, _type, g):
                 # something went wrong when pruning. e.g. a node is disconnected from G
                 raise Exception("The current node in SET won't form a cluster")
 
-
             # Pruning technique. If |U|+|cand_set_U| >= msu then might be a cluster else no way!
             if len(U) + len(candU) < msu or len(V) + len(candV) < msv:
                 # there might be a cluster
@@ -63,8 +62,8 @@ def miqu(U, V, candU, candV, _type, g):
             # print("\t", vertices_a, vertices_b)  # delete
 
             #  First check
-            gamma_min_edges = round(len(U)*g_min, 0)  # min number of edges to be a QBC
-            lambda_min_edges = round(len(V)*l_min, 0)  # min number of edges to be a QBC
+            gamma_min_edges = round(len(V)*g_min, 0)  # min number of edges to be a QBC
+            lambda_min_edges = round(len(U)*l_min, 0)  # min number of edges to be a QBC
 
             for u in U:
                 u_edges = 0
@@ -86,8 +85,7 @@ def miqu(U, V, candU, candV, _type, g):
                         break  # optimization, no need to check further if curr. belongs to a QBC
 
                 if u_edges < gamma_min_edges:
-                    raise Exception("One vertex from U (", u, ") w/o enough edges to form a QBC with", v)
-
+                    raise Exception("One vertex from U (", u, ") w/o enough edges to form a QBC with", v , " ---- edges",gamma_min_edges)
                     # retrieve element
 
             # print("Num of u edges", u_edges)
@@ -116,7 +114,6 @@ def miqu(U, V, candU, candV, _type, g):
             # clusterList.append([U, V])
             clusterList.append(Cluster(U, V))
             # at this point we are sure that u,v are in the graph
-
         except Exception as er:
             # print("\t", er, "!!!!")
             pass
@@ -192,7 +189,7 @@ def miqu(U, V, candU, candV, _type, g):
         i += 1
 
 # g_reader = GraphFileReader("datasets/bipartite_toy2.graphml")
-g_reader = GraphFileReader("datasets/amazon1481193329.graphml")
+g_reader = GraphFileReader("datasets/amazon.graphml")
 
 g_reader.generate_graph()
 g = g_reader.graph
