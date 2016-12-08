@@ -28,12 +28,13 @@ c = 0  # Number of expansions performed
 check = 0  # Number of visits to Enumeration Tree (to check for clusters)
 
 clusterList = []  # List containing the clusters found
+print("Consider that the raise error execption log is disabled")
 
 def miqu(U, V, candU, candV, _type, g):
     global c
     global check
     c += 1
-    print(_type, U, V, "Cand_sets = ", candU, candV, "-*-")
+    # print(_type, U, V, "Cand_sets = ", candU, candV, "-*-")
 
     if len(U) >= msu and len(V) >= msv:
         # Pruning candidates when we have reached the minimum size constraint
@@ -117,7 +118,8 @@ def miqu(U, V, candU, candV, _type, g):
             # at this point we are sure that u,v are in the graph
 
         except Exception as er:
-            print("\t", er, "!!!!")
+            # print("\t", er, "!!!!")
+            pass
         finally:
             pass
 
@@ -190,26 +192,50 @@ def miqu(U, V, candU, candV, _type, g):
         i += 1
 
 # g_reader = GraphFileReader("datasets/bipartite_toy2.graphml")
-g_reader = GraphFileReader("datasets/amazon.graphml")
+g_reader = GraphFileReader("datasets/amazon1481193329.graphml")
 
 g_reader.generate_graph()
 g = g_reader.graph
-# print(g)
+
 
 AB = g.split_vertices()
 
-A = AB[0]
-B = AB[1]
+A_list = AB[0]
+B_list = AB[1]
+A=set()
+B=set()
 
-A = list(str(A).replace('*','').replace('{','').replace(',','').replace('}','').replace(' ',''))
-A = [int(x) for x in A]
-B = list(str(B).replace('+','').replace('{','').replace(',','').replace('}','').replace(' ',''))
-B = [int(x) for x in B]
+for a in A_list:
+    # print(a)
+    # print(str(a).replace('*','').replace('{','').replace(',','').replace('}','').replace(' ',''))
+    A.add(int(str(a).replace('*','').replace('{','').replace(',','').replace('}','').replace(' ','')))
+    # print(A)
+
+
+
+# print(str(A))
+# A = list(str(A).replace('*','').replace('{','').replace(',','').replace('}','').replace(' ',''))
+
+# print(A)
+# print(B)
+# exit()
+
+# A = [int(x) for x in A]
+for b in B_list:
+    B.add(int(str(b).replace('+','').replace('{','').replace(',','').replace('}','').replace(' ','')))
+# B = list(str(B).replace('+','').replace('{','').replace(',','').replace('}','').replace(' ',''))
+# B = [int(x) for x in B]
+
+A = list(A)
+B = list(B)
+
 B.sort()
 A.sort()
 
-print(A)
-print(B)
+# print(A)
+# print(B)
+# exit()
+
 total_a = len(A)
 total_b = len(B)
 # A = [0, 1]

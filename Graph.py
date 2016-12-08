@@ -60,7 +60,7 @@ class Graph(object):
         set_a = set()
         set_b = set()
         for v in self.vertices:
-            if v.type_of_vertex == "a":
+            if v.type_of_vertex == "a" or v.type_of_vertex == "A":
                 set_a.add(v)
             else:
                 set_b.add(v)

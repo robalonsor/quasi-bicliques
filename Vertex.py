@@ -13,7 +13,7 @@ class Vertex(object):
         # ArrayList < HashMap < Node, Edge >> adjLists = new  ArrayList < HashMap < Node, Edge >> ();
 
     def __str__(self):
-        if self.type_of_vertex == "a":
+        if self.type_of_vertex == "a" or self.type_of_vertex == "A":
             return str(self.vertex_id) + "*"  # Vertex type U
         return str(self.vertex_id)+"+"  # Vertex type V
 
