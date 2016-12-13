@@ -10,9 +10,6 @@ import matplotlib.pyplot as plt
 def prune_vertices(U, V, candU, candV, g):
 
     # if all flags are disabled
-    # flags for the pruning techniques
-    # come from the Graphs class
-
     # return the same vertices
     # return U, V
     # vertices_by_type = g.split_vertices()  # a list with two positions [setA, setB]
@@ -20,10 +17,11 @@ def prune_vertices(U, V, candU, candV, g):
     # vertices_b = vertices_by_type[1]
 
     # vertices_a, vertices_b = prune_based_on_degree(vertices_a, vertices_b, g)
-
-    g_structure = nx.Graph(g.to_dict_of_lists(0))  # graph from dimension 1
-
+    # g_structure = nx.Graph(g.to_dict_of_lists(0))  # graph from dimension 1
+    g_structure = g.subgraph(U + V + candU + candV)
     candU, candV, fail_flag = prune_based_on_diameter(U, V, candU, candV, g_structure)
+    g_structure = g.subgraph(U + V + candU + candV)
+    candV,candV,fail_flag = prune_based_on_degree(U, V, candU, candV, g_structure)
 
     print("\n\n****No more pruning for the node in enumeration tree****")
     print("At the end of pruning tech. cand sets are", candU, candV)
@@ -31,12 +29,12 @@ def prune_vertices(U, V, candU, candV, g):
     candU.sort()
     candV.sort()
 
-    #print(g.to_dict_of_lists(0))
-    # print(U, V)
-
     return candU, candV, fail_flag
 
-def prune_based_on_degree(vertices_a, vertices_b, g):
+def prune_based_on_degree(U, V, candU, candV, g_structure):
+    pass
+
+def pre_processing(vertices_a, vertices_b, g):
     keep_pruning = True  # We shall prune until no vertex is pruned
                          # This is because deleting a vertex from G
                          # may disconnect or reduce the degree of other
