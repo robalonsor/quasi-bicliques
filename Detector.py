@@ -52,7 +52,7 @@ def miqu(U, V, candU, candV, _type, g):
             H = G.subgraph(U + V)
             if not nx.is_connected(H):
                 raise Exception("Vertices U and V are not connected, so they cannot be part of an interesting QBC")
-            candU, candV, fail_flag = PruneTechniques.prune_vertices(U, V, candU, candV, G)
+            candU, candV, fail_flag = PruneTechniques.prune_vertices(U, V, candU, candV, G, [g_min,l_min])
             if fail_flag:
                 # something went wrong when pruning. e.g. a node is disconnected from G
                 raise Exception("The current node in SET won't form a cluster")
@@ -65,8 +65,8 @@ def miqu(U, V, candU, candV, _type, g):
             # print("\t", vertices_a, vertices_b)  # delete
 
             #  First check
-            gamma_min_edges = round(len(V)*g_min, 0)  # min number of edges to be a QBC
-            lambda_min_edges = round(len(U)*l_min, 0)  # min number of edges to be a QBC
+            u_min_edges = round(len(V)*l_min, 0)  # all u in U must have these min number of edges to be a QBC
+            v_min_edges = round(len(U)*g_min, 0)  # likewise v in V min number of edges to be a QBC
 
             for u in U:
                 u_edges = 0
@@ -84,11 +84,11 @@ def miqu(U, V, candU, candV, _type, g):
                         continue
                     # print(e)
                     u_edges += 1
-                    if u_edges >= gamma_min_edges:  # reached the ideal number of edges for the vertex u
+                    if u_edges >= u_min_edges:  # reached the ideal number of edges for the vertex u
                         break  # optimization, no need to check further if curr. belongs to a QBC
 
-                if u_edges < gamma_min_edges:
-                    raise Exception("One vertex from U (", u, ") w/o enough edges to form a QBC with", v , " ---- edges",gamma_min_edges)
+                if u_edges < u_min_edges:
+                    raise Exception("One vertex from U (", u, ") w/o enough edges to form a QBC with", v , " ---- edges",u_min_edges)
                     # retrieve element
 
             # print("Num of u edges", u_edges)
@@ -106,9 +106,9 @@ def miqu(U, V, candU, candV, _type, g):
                         continue
                     # print(e)
                     v_edges += 1
-                    if v_edges >= lambda_min_edges: # reached the ideal number of edges for vertex v
+                    if v_edges >= v_min_edges: # reached the ideal number of edges for vertex v
                         break
-                if v_edges < lambda_min_edges:  # if the min # of edges v is less than v_edge, v cannot be part of a QBC
+                if v_edges < v_min_edges:  # if the min # of edges v is less than v_edge, v cannot be part of a QBC
                     raise Exception("One vertex from V (", v, ") w/o enough edges to form a QBC with ", u)
 
             # if u_edges >= gamma_min_edges and v_edges >= lambda_min_edges:
@@ -245,7 +245,7 @@ rules = "*"
 active_rules= []
 if str_to_bool(config['PruneSection']['diameter']): active_rules.append("Diameter")
 if str_to_bool(config['PruneSection']['degree']): active_rules.append("Degree")
-active_rules = "*".join(active_rules)
+active_rules = "*\n".join(active_rules)
 print(active_rules)
 
 #print("Minimum size of the QBC for U and V\nDiamaeter pruning of cand sets")
