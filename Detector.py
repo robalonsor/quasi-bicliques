@@ -20,7 +20,7 @@ config.read('ConfigFile.properties')
 def str_to_bool(v):
     return v.lower() == "true"
 ##
-# Pruning based on the 'interestingness' of the QBC
+# Pruning tech. based on the 'interestingness' of the QBC
 # msu controls the min. number of vertices type u
 # msv controls the min. number of vertices type v
 
@@ -35,10 +35,10 @@ l_min = float(config['SizeSection']['lambda_min'])  # Lambda min
 c = 0  # Number of expansions performed
 check = 0  # Number of visits to Enumeration Tree (to check for clusters)
 
-clusterList = []  # List containing the clusters found
+clusterList = []  # List containing clusters found
 print("Consider that raise error execption log is disabled")
 
-def miqu(U, V, candU, candV, _type, g):
+def miqu(U, V, candU, candV, _type, g, di = 0):
     global c
     global check
     c += 1
@@ -48,11 +48,12 @@ def miqu(U, V, candU, candV, _type, g):
         # Pruning candidates when we have reached the minimum size constraint
         try:
             # check for connectedness of U+V. Since a QBC should be connected
-            G = nx.Graph(g.to_dict_of_lists(0))
+            G = nx.Graph(g.to_dict_of_lists(di))
             H = G.subgraph(U + V)
             if not nx.is_connected(H):
                 raise Exception("Vertices U and V are not connected, so they cannot be part of an interesting QBC")
-            candU, candV, fail_flag = PruneTechniques.prune_vertices(U, V, candU, candV, G, [g_min,l_min])
+            candU, candV, fail_flag = PruneTechniques.prune_vertices(U, V, candU, candV, G, [g_min,l_min], config)
+
             if fail_flag:
                 # something went wrong when pruning. e.g. a node is disconnected from G
                 raise Exception("The current node in SET won't form a cluster")
@@ -90,8 +91,6 @@ def miqu(U, V, candU, candV, _type, g):
                 if u_edges < u_min_edges:
                     raise Exception("One vertex from U (", u, ") w/o enough edges to form a QBC with", v , " ---- edges",u_min_edges)
                     # retrieve element
-
-            # print("Num of u edges", u_edges)
             # at this point,
             # u and v are in in G or CC
             for v in V:
@@ -118,7 +117,7 @@ def miqu(U, V, candU, candV, _type, g):
             clusterList.append(Cluster(U, V))
             # at this point we are sure that u,v are in the graph
         except Exception as er:
-            print("\t", er, "!!!!")
+            print("\t Exp: ", er, "!!!!")
             pass
         finally:
             pass
@@ -253,4 +252,3 @@ print(active_rules)
 if str_to_bool(config['OutputFormat']['print_clusters']):
     for c in clusterList:
         print(c)
-#print([''.join(each) for each in clusterList])
