@@ -42,7 +42,8 @@ def miqu(U, V, candU, candV, _type, g, di = 0):
     global c
     global check
     c += 1
-    print(_type, U, V, "Cand_sets = ", candU, candV, "-*-")
+    if config['DebugOption']['expansion'].lower() == "true":
+        print(_type, U, V, "Cand_sets = ", candU, candV, "-*-")
 
     if len(U) >= msu and len(V) >= msv:
         # Pruning candidates when we have reached the minimum size constraint
@@ -59,10 +60,10 @@ def miqu(U, V, candU, candV, _type, g, di = 0):
                 raise Exception("The current node in SET won't form a cluster")
 
             check += 1
-            print("\tLooking for cluster in: ", U, V)
+            # print("\tLooking for cluster in: ", U, V)
             vertices_by_type = g.split_vertices()  # a list with two positions [setA, setB]
-            vertices_a = vertices_by_type[0]
-            vertices_b = vertices_by_type[1]
+            vertices_u = vertices_by_type[0]
+            vertices_v = vertices_by_type[1]
             # print("\t", vertices_a, vertices_b)  # delete
 
             #  First check
@@ -71,13 +72,13 @@ def miqu(U, V, candU, candV, _type, g, di = 0):
 
             for u in U:
                 u_edges = 0
-                if Vertex(u, "a") not in vertices_a:
+                if Vertex(u, "a") not in vertices_u:
                     raise Exception("Vertex", u, " not in list of vertices")
                 for v in V:
-                    if Vertex(v, "b") not in vertices_b:
+                    if Vertex(v, "b") not in vertices_v:
                         raise Exception("Vertex", v, " not in list of vertices")
-                    u_in_g = {x for x in vertices_a if x == Vertex(u, "a")}.pop()
-                    v_in_g = {x for x in vertices_b if x == Vertex(v, "b")}.pop()
+                    u_in_g = {x for x in vertices_u if x == Vertex(u, "a")}.pop()
+                    v_in_g = {x for x in vertices_v if x == Vertex(v, "b")}.pop()
                     e = u_in_g.get_edge_to(0, v_in_g)
                     # e = u_in_g.get_edge_to(0, Vertex(5, "b"))
                     if e is None:
@@ -96,8 +97,8 @@ def miqu(U, V, candU, candV, _type, g, di = 0):
             for v in V:
                 v_edges = 0
                 for u in U:
-                    u_in_g = {x for x in vertices_a if x == Vertex(u, "a")}.pop()
-                    v_in_g = {x for x in vertices_b if x == Vertex(v, "b")}.pop()
+                    u_in_g = {x for x in vertices_u if x == Vertex(u, "a")}.pop()
+                    v_in_g = {x for x in vertices_v if x == Vertex(v, "b")}.pop()
                     e = u_in_g.get_edge_to(0, v_in_g)
                     # e = u_in_g.get_edge_to(0, Vertex(5, "b"))
                     if e is None:
@@ -117,7 +118,8 @@ def miqu(U, V, candU, candV, _type, g, di = 0):
             clusterList.append(Cluster(U, V))
             # at this point we are sure that u,v are in the graph
         except Exception as er:
-            print("\t Exp: ", er, "!!!!")
+            if config['DebugOption']['exception'].lower() == "true":
+                print("\t Exp: ", er, "!!!!")
             pass
         finally:
             pass
@@ -189,46 +191,49 @@ def miqu(U, V, candU, candV, _type, g, di = 0):
         i += 1
 
 g_reader = GraphFileReader(config['DataSetSection']['dataset'])
-#g_reader = GraphFileReader("datasets/amazon.graphml")
 
 g_reader.generate_graph()
 g = g_reader.graph
 
+G = nx.Graph(g.to_dict_of_lists(0))
+cc_list = list(nx.connected_component_subgraphs(G)) ## list of connected components
+# Splitting vertices according to type
+UV_vertices = g.split_vertices()
+U_list = UV_vertices[0]
+V_list = UV_vertices[1]
 
-AB = g.split_vertices()
-
-A_list = AB[0]
-B_list = AB[1]
 A=set()
 B=set()
-
-for a in A_list:
-    # print(a)
-    # print(str(a).replace('*','').replace('{','').replace(',','').replace('}','').replace(' ',''))
+for a in U_list:
     A.add(int(str(a).replace('*','').replace('{','').replace(',','').replace('}','').replace(' ','')))
-    # print(A)
-
-# print(str(A))
-# A = list(str(A).replace('*','').replace('{','').replace(',','').replace('}','').replace(' ',''))
-
-# A = [int(x) for x in A]
-for b in B_list:
+for b in V_list:
     B.add(int(str(b).replace('+','').replace('{','').replace(',','').replace('}','').replace(' ','')))
-# B = list(str(B).replace('+','').replace('{','').replace(',','').replace('}','').replace(' ',''))
-# B = [int(x) for x in B]
+# at this point A, B are sets of vertices U, V, respectively
+# Iterating through connected components
+elapsed_time = time.clock() # Starting timer
+for cc_index in range(len(cc_list)):
+    cc = cc_list[cc_index]
+    if cc_index <= 1: continue
+    # cc = cc_list[0]
+    vertices_in_cc = set(cc.nodes())
+    print("CC: ", vertices_in_cc)
 
-A = list(A)
-B = list(B)
+    A_cc = A.intersection(vertices_in_cc)
+    B_cc = B.intersection(vertices_in_cc)
 
-B.sort()
-A.sort()
+    A_cc = list(A_cc)
+    B_cc = list(B_cc)
 
-total_a = len(A)
-total_b = len(B)
-# A = [0, 1]
-# B = [2, 3, 4]
-elapsed_time = time.clock()
-miqu([], [], A, B, "U-V", g)
+    A_cc.sort()
+    B_cc.sort()
+
+    miqu([], [], A_cc, B_cc, "U-V", g)
+    break
+
+total_a = len(A) # total num vertices type U in all graph
+total_b = len(B) # total num vertices type V in all graph
+
+
 final_time = time.clock()-elapsed_time
 total_combinations = (2**total_a-1)*(2**total_b-1)
 print("************\nTheoretical number of combinations to be explored", total_combinations)

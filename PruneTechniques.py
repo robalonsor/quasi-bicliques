@@ -1,13 +1,14 @@
 #!/usr/bin python3
 
-from GraphFileReader import GraphFileReader
-from Vertex import Vertex
-from Cluster import Cluster
-import networkx as nx
-import matplotlib.pyplot as plt
 import configparser
+import networkx as nx
+# from GraphFileReader import GraphFileReader
+# from Vertex import Vertex
+# from Cluster import Cluster
+# import matplotlib.pyplot as plt
 
-
+def str_to_bool(v):
+    return v.lower() == "true"
 
 def prune_vertices(U, V, candU, candV, G, params, config_info):
     config = configparser.ConfigParser()
@@ -24,14 +25,16 @@ def prune_vertices(U, V, candU, candV, G, params, config_info):
     for prun_tech in config['PruneSection']:
         g_structure = G.subgraph(U + V + candU + candV) # creating networkx subgraph
         if config['PruneSection'][prun_tech].lower() == "true": # if prun tech 'prun_tech' is true, activate
-            candU, candV, fail_flag = dict_of_prun_tech[prun_tech](U, V, candU, candV, g_structure, params)
+            debug_output = str_to_bool(config['DebugOption']['prune_debug'])
+            candU, candV, fail_flag = dict_of_prun_tech[prun_tech](U, V, candU, candV, g_structure, params, debug_output)
 
     # candU, candV, fail_flag = prune_based_on_diameter(U, V, candU, candV, g_structure)
     # g_structure = G.subgraph(U + V + candU + candV)
     # candU, candV, fail_flag = prune_based_on_degree(U, V, candU, candV, g_structure, params)
 
-    print("\n\n****No more pruning for the node in enumeration tree****")
-    print("After prun.tech., for ST, cand sets are", candU, candV)
+    if config['DebugOption']['prune_debug'].lower() == "true":
+        print("****No more pruning for the node in enumeration tree****")
+        print("After prun.tech., for ST, cand sets are", candU, candV)
 
     candU.sort()
     candV.sort()
@@ -82,7 +85,7 @@ def pre_processing(vertices_a, vertices_b, g):
 
     return vertices_a, vertices_b
 
-def prune_based_on_degree(U, V, candU, candV, g_structure, params):
+def prune_based_on_degree(U, V, candU, candV, g_structure, params, debug_output):
     # params position 0=gamma position 1=lambda
     min_edges_u = round((len(V) + 1) * params[1],0)
     min_edges_v = round((len(U) + 1) * params[0],0) # all v in V must have these edges
@@ -112,13 +115,14 @@ def prune_based_on_degree(U, V, candU, candV, g_structure, params):
                 candV.pop(candV.index(v))
                 keep_pruning = True
                 break
-    print("->", nx.to_dict_of_lists(g_structure))
-    print("candidates",candU,candV)
+    if debug_output:
+        print("deg->", nx.to_dict_of_lists(g_structure))
+        print("candidates",candU,candV)
 
 
     return candU,candV,False
 
-def prune_based_on_diameter(U, V, candU, candV, g_structure, n = False):
+def prune_based_on_diameter(U, V, candU, candV, g_structure, params, debug_output):
     # print("Starting pruning based on diameter")
     # print(U, V, candU, candV)
     # g_structure = nx.Graph(g_structure.to_dict_of_lists(0))
@@ -145,7 +149,9 @@ def prune_based_on_diameter(U, V, candU, candV, g_structure, n = False):
     # print("Current candidates", candU, candV)
     candU = [item for item in candU if item in intersection_of_vertices]
     candV = [item for item in candV if item in intersection_of_vertices]
-    print("After diam. prun. candidates are: ", candU, candV)
+
+    if debug_output:
+        print("Diam. After diam. prun. candidates are: ", candU, candV)
 
     return candU, candV, False
 
