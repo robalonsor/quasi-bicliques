@@ -87,13 +87,16 @@ def pre_processing(vertices_a, vertices_b, g):
 
 def prune_based_on_degree(U, V, candU, candV, g_structure, params, debug_output):
     # params position 0=gamma position 1=lambda
-    min_edges_u = round((len(V) + 1) * params[1],0)
-    min_edges_v = round((len(U) + 1) * params[0],0) # all v in V must have these edges
+    if debug_output:
+        print("Starting pruning based on degree")
+        print(U, V, candU, candV)
 
-
-    # print(degree_vertex_u)
-    # print(degree_vertex_v)
-    # print("->",nx.to_dict_of_lists(g_structure))
+    # min_edges_u = round((len(V) + 1) * params[1],0)
+    # min_edges_v = round((len(U) + 1) * params[0],0) # all v in V must have these edges
+    min_edges_u = round((len(V)) * params[1], 0)
+    min_edges_v = round((len(U)) * params[0], 0)  # all v in candV must have these edges
+    if debug_output:
+        print("min edges for u = ",min_edges_u, " and for v = ", min_edges_v)
 
     keep_pruning = True
     while keep_pruning:
@@ -116,17 +119,17 @@ def prune_based_on_degree(U, V, candU, candV, g_structure, params, debug_output)
                 keep_pruning = True
                 break
     if debug_output:
-        print("deg->", nx.to_dict_of_lists(g_structure))
-        print("candidates",candU,candV)
+        # print("deg->", nx.to_dict_of_lists(g_structure))
+        print("Deg. candidates after prun: ",candU,candV)
 
 
     return candU,candV,False
 
 # TODO: Correct this pruning techique since there is a bug that prunes candidates that are part of a QBC
-#
 def prune_based_on_diameter(U, V, candU, candV, g_structure, params, debug_output):
-    # print("Starting pruning based on diameter")
-    # print(U, V, candU, candV)
+    if debug_output:
+        print("Starting pruning based on diameter")
+        print(U, V, candU, candV)
     # g_structure = nx.Graph(g_structure.to_dict_of_lists(0))
     for u in U:
         if u not in g_structure:
@@ -145,10 +148,11 @@ def prune_based_on_diameter(U, V, candU, candV, g_structure, params, debug_outpu
             intersection_of_vertices = intersection_of_vertices.intersection(neighbors_of_v)
         else:
             intersection_of_vertices = set(neighbors_of_v.keys())
-    # print("After computing diameter the intersection of vertices is: ")
-    # print(intersection_of_vertices)
-    # print("Deleting candidates not in the intersection")
-    # print("Current candidates", candU, candV)
+    if debug_output:
+        print("After computing diameter the intersection of vertices is: ")
+        print(intersection_of_vertices)
+        print("Deleting candidates not in the intersection")
+        print("Current candidates", candU, candV)
     candU = [item for item in candU if item in intersection_of_vertices]
     candV = [item for item in candV if item in intersection_of_vertices]
 

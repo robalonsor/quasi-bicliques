@@ -60,6 +60,9 @@ def miqu(U, V, candU, candV, _type, g, type_of_vertices, di = 0, ):
                 # something went wrong when pruning. e.g. a node is disconnected from G
                 raise Exception("The current node in SET won't form a cluster")
 
+            # if [1,3] == U and [2, 4] == V:
+            #     exit()
+
             check += 1
             # print("\tLooking for cluster in: ", U, V)
 
