@@ -10,7 +10,7 @@ import networkx as nx
 class GraphFileReader(object):
     def __init__(self, file_name):
         self.file_name = file_name
-        self.edge_set = {}
+        # self.edge_set = {}
         self.vertex_type_dic = {}
         self.graph = Graph(2)
 
@@ -57,29 +57,29 @@ class GraphFileReader(object):
 
         print("Successfully constructed vertex set")
         print(self.vertex_type_dic)
-        print("Constructing edge set")
+        # print("Constructing edge set")
 
-        G = nx.read_graphml(f.name, node_type=int)  # Constr. edge set using networkx+graphml reader
-        print(nx.to_dict_of_lists(G))
-        self.edge_set = nx.to_dict_of_lists(G)
-        self.graph_construction()
-
-    def graph_construction(self):
-        V_type = self.vertex_type_dic  # vertex type
-        E = self.edge_set  # set of edges
-        g = self.graph
-        for key_v_id in E:
-            edges_to = E[key_v_id]  # the list of vertices with edge to <key_v_id> vertex
-            v1 = Vertex(key_v_id, V_type[key_v_id])
-            for v in edges_to:
-                v2 = Vertex(v, V_type[v])
-                e = Edge(v1, v2, 100)  # 100 is an arbitrary value
-                v1.add_edge(0, e)
-            g.add_vertex(v1)
-        self.graph = g
-        if g:
-            return True
-        return
+        # G = nx.read_graphml(f.name, node_type=int)  # Constr. edge set using networkx+graphml reader
+        # print(nx.to_dict_of_lists(G))
+        # self.edge_set = nx.to_dict_of_lists(G)
+        # self.graph_construction()
+    #
+    # def graph_construction(self):
+    #     V_type = self.vertex_type_dic  # vertex type
+    #     E = self.edge_set  # set of edges
+    #     g = self.graph
+    #     for key_v_id in E:
+    #         edges_to = E[key_v_id]  # the list of vertices with edge to <key_v_id> vertex
+    #         v1 = Vertex(key_v_id, V_type[key_v_id])
+    #         for v in edges_to:
+    #             v2 = Vertex(v, V_type[v])
+    #             e = Edge(v1, v2, 100)  # 100 is an arbitrary value
+    #             v1.add_edge(0, e)
+    #         g.add_vertex(v1)
+    #     self.graph = g
+    #     if g:
+    #         return True
+    #     return
 
         # v1 = Vertex(1, "A")
         # v2 = Vertex(2, "B")

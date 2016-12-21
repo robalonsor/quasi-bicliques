@@ -66,14 +66,14 @@ class Graph(object):
                 set_b.add(v)
         return [set_a, set_b]
 
-    def get_vertices(self):
-        return self.vertices
-
-    def get_vertex_by_id(self, id_vertex):
-        for v in self.vertices:
-            if v.vertex_id == id_vertex:
-                return v
-        return
+    # def get_vertices(self):
+    #     return self.vertices
+    #
+    # def get_vertex_by_id(self, id_vertex):
+    #     for v in self.vertices:
+    #         if v.vertex_id == id_vertex:
+    #             return v
+    #     return
 
     def add_vertex(self, vertex):
         self.vertices.add(vertex)
@@ -84,37 +84,37 @@ class Graph(object):
         v2.add_edge(dimension, e)
         return e
 
-    def get_edges(self, di):
-        # Returns: A list with edges
-
-        list_of_edges = []
-        for v in self.vertices:
-            for neighbor in v.get_neighbors(di):
-                if v.vertex_id < neighbor.vertex_id:
-                    e = v.get_edge_to(di,neighbor)
-                    list_of_edges.append(e)
-
-        return list_of_edges
-
-    def get_number_of_edges(self, di):
-        number_edges = 0
-        for v in self.vertices:
-            for neighbor in v.get_neighbors(di):
-                if v.vertex_id < neighbor.vertex_id:
-                    number_edges += 1
-
-        return number_edges
-
-    def set_vertices(self, vertices):
-        self.vertices = vertices
-
-# import matplotlib.pyplot as plt
-# import networkx as nx
+#     def get_edges(self, di):
+#         # Returns: A list with edges
 #
-g1 = Graph(2)
-v1 = Vertex(1, "A")
-v2 = Vertex(2, "B")
-e = Edge(v1, v2, 100)
+#         list_of_edges = []
+#         for v in self.vertices:
+#             for neighbor in v.get_neighbors(di):
+#                 if v.vertex_id < neighbor.vertex_id:
+#                     e = v.get_edge_to(di,neighbor)
+#                     list_of_edges.append(e)
+#
+#         return list_of_edges
+#
+#     def get_number_of_edges(self, di):
+#         number_edges = 0
+#         for v in self.vertices:
+#             for neighbor in v.get_neighbors(di):
+#                 if v.vertex_id < neighbor.vertex_id:
+#                     number_edges += 1
+#
+#         return number_edges
+#
+#     def set_vertices(self, vertices):
+#         self.vertices = vertices
+#
+# # import matplotlib.pyplot as plt
+# # import networkx as nx
+# #
+# g1 = Graph(2)
+# v1 = Vertex(1, "A")
+# v2 = Vertex(2, "B")
+# e = Edge(v1, v2, 100)
 
 
 #

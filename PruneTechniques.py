@@ -10,7 +10,7 @@ import networkx as nx
 def str_to_bool(v):
     return v.lower() == "true"
 
-def prune_vertices(U, V, candU, candV, G, params, config_info):
+def prune_vertices(U, V, candU, candV, g, params, config_info):
     config = configparser.ConfigParser()
     config.read_dict(config_info)
 
@@ -20,10 +20,10 @@ def prune_vertices(U, V, candU, candV, G, params, config_info):
     # if all flags are disabled
     # return the same vertices
     # return U, V
-    fail_flag = True
+    fail_flag = False
 
     for prun_tech in config['PruneSection']:
-        g_structure = G.subgraph(U + V + candU + candV) # creating networkx subgraph
+        g_structure = g.subgraph(U + V + candU + candV) # creating networkx subgraph
         if config['PruneSection'][prun_tech].lower() == "true": # if prun tech 'prun_tech' is true, activate
             debug_output = str_to_bool(config['DebugOption']['prune_debug'])
             candU, candV, fail_flag = dict_of_prun_tech[prun_tech](U, V, candU, candV, g_structure, params, debug_output)
@@ -122,6 +122,8 @@ def prune_based_on_degree(U, V, candU, candV, g_structure, params, debug_output)
 
     return candU,candV,False
 
+# TODO: Correct this pruning techique since there is a bug that prunes candidates that are part of a QBC
+#
 def prune_based_on_diameter(U, V, candU, candV, g_structure, params, debug_output):
     # print("Starting pruning based on diameter")
     # print(U, V, candU, candV)
