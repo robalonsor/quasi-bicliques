@@ -125,7 +125,6 @@ def prune_based_on_degree(U, V, candU, candV, g_structure, params, debug_output)
 
     return candU,candV,False
 
-# TODO: Correct this pruning techique since there is a bug that prunes candidates that are part of a QBC
 def prune_based_on_diameter(U, V, candU, candV, g_structure, params, debug_output):
     if debug_output:
         print("Starting pruning based on diameter")

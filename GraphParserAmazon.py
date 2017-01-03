@@ -4,7 +4,7 @@
 # Input: Amazon dataset
 # Output: A graphphml representing a bipartite graph (e.g. user-reviews, user-purchases)
 
-f = open("raw/short_out.amazon-ratings")
+f = open("raw/out_thousands.amazon-ratings")
 # f = open("raw/test.amazon")
 
 edges = ""
