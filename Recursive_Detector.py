@@ -168,7 +168,7 @@ def miqu(U, V, candU, candV, _type, g, type_of_vertices, di = 0):
         i += 1
 
 g_reader = GraphFileReader(config['DataSetSection']['dataset'])
-G = nx.read_graphml(config['DataSetSection']['dataset'],node_type=int)
+G = nx.read_graphml(config['DataSetSection']['dataset'], node_type=int)
 g_reader.generate_graph()
 
 cc_list = list(nx.connected_component_subgraphs(G)) ## list of connected components

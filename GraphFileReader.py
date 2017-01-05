@@ -22,8 +22,6 @@ class GraphFileReader(object):
             f.close()
             self.construct_graph_from_file(file_name)
 
-    # def get_graph(self):
-    #     return self.graph
 
     def construct_graph_from_file(self, file_name):
         f = open(file_name)
