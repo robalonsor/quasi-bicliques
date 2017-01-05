@@ -3,6 +3,9 @@
 # will produce an error
 
 
+# Recursive detector of Quasi-Bicliques
+# Note: Python doesn't handle well recursion.
+
 # A = [0,1,2,3,4,5,6,7,8]
 from GraphFileReader import GraphFileReader
 from Cluster import Cluster
@@ -37,12 +40,11 @@ check = 0  # Number of visits to Enumeration Tree (to check for clusters)
 clusterList = []  # List containing clusters found
 print("Consider that raise error execption log is disabled")
 
-def miqu(U, V, candU, candV, _type, g, type_of_vertices, di = 0, ):
+def miqu(U, V, candU, candV, _type, g, type_of_vertices, di = 0):
     global c
     global check
     c += 1
-    if config['DebugOption']['expansion'].lower() == "true":
-        print(_type, U, V, "Cand_sets = ", candU, candV, "-*-")
+    if config['DebugOption']['expansion'].lower() == "true": print(_type, U, V, "Cand_sets = ", candU, candV, "-*-")
 
     if len(U) >= msu and len(V) >= msv:
         # Pruning candidates when we have reached the minimum size constraint
@@ -58,9 +60,6 @@ def miqu(U, V, candU, candV, _type, g, type_of_vertices, di = 0, ):
             if fail_flag:
                 # something went wrong when pruning. e.g. a node is disconnected from G
                 raise Exception("The current node in SET won't form a cluster")
-
-            # if [1,3] == U and [2, 4] == V:
-            #     exit()
 
             check += 1
             # print("\tLooking for cluster in: ", U, V)
@@ -92,14 +91,12 @@ def miqu(U, V, candU, candV, _type, g, type_of_vertices, di = 0, ):
 
             # if u_edges >= gamma_min_edges and v_edges >= lambda_min_edges:
             # at this point there is no way U, V are not a cluster
-            if config['DebugOption']['cluster'].lower() == "true":
-                print("\tCluster found! ")
+            if config['DebugOption']['cluster'].lower() == "true": print("\tCluster found! ")
             # clusterList.append([U, V])
             clusterList.append(Cluster(U, V))
             # at this point we are sure that u,v are in the graph
         except Exception as er:
-            if config['DebugOption']['exception'].lower() == "true":
-                print("\t Exp: ", er, "!!!!")
+            if config['DebugOption']['exception'].lower() == "true": print("\t Exp: ", er, "!!!!")
             pass
         finally:
             pass
