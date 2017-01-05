@@ -5,7 +5,6 @@
 
 # A = [0,1,2,3,4,5,6,7,8]
 from GraphFileReader import GraphFileReader
-from Vertex import Vertex
 from Cluster import Cluster
 import PruneTechniques
 import time  # Only works in Linux

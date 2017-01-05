@@ -51,6 +51,20 @@ def miqu(U, V, candU, candV, _type, g, type_of_vertices, di = 0, ):
     if config['DebugOption']['expansion'].lower() == "true":
         print(_type, U, V, "Cand_sets = ", candU, candV, "-*-")
 
+    try:
+        val = powerset(candU)
+        while True:
+            x = val.__next__()
+            print(x)
+    except StopIteration:
+        print("Iteration done.")
+
+    # for U in powerset(candU):
+    #     for V in powerset(candV):
+    #         print(U,V)
+
+    exit()
+
     if len(U) >= msu and len(V) >= msv:
         # Pruning candidates when we have reached the minimum size constraint
         try:
@@ -59,14 +73,10 @@ def miqu(U, V, candU, candV, _type, g, type_of_vertices, di = 0, ):
             H = g.subgraph(U + V)
             if not nx.is_connected(H):
                 raise Exception("Vertices U and V are not connected, so they cannot be part of an interesting QBC")
-
             candU, candV, fail_flag = PruneTechniques.prune_vertices(U, V, candU, candV, g, [g_min,l_min], config)
-
             if fail_flag:
                 # something went wrong when pruning. e.g. a node is disconnected from G
                 raise Exception("The current node in SET won't form a cluster")
-
-
             check += 1
             #  First check
             u_min_edges = round(len(V)*l_min, 0)  # all u in U must have these min number of edges to be a QBC
@@ -131,6 +141,7 @@ for v_id in g_reader.vertex_type_dic:
 elapsed_time = time.clock() # Starting timer
 for cc_index in range(len(cc_list)):
     cc = cc_list[cc_index]
+
     # cc = cc_list[0]
     vertices_in_cc = set(cc.nodes())
     print("CC: ", vertices_in_cc)
@@ -144,6 +155,8 @@ for cc_index in range(len(cc_list)):
     A_cc.sort()
     B_cc.sort()
 
+    print(A_cc)
+    print(B_cc)
     miqu([], [], A_cc, B_cc, "U-V", G, g_reader.vertex_type_dic)
 
 
