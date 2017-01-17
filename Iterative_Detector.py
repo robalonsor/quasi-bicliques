@@ -121,6 +121,31 @@ def miqu(U, V, candU, candV, _type, g, type_of_vertices, di = 0, ):
         print("No more U or V expansion: Max. QB in G")
         return
 
+
+# A = [1,2,3]
+# B = [4,5,6]
+A = range(1000)
+B = range(1000, 2000)
+
+import itertools
+
+k = 3
+while k < len(A) and k < len(B):
+    for c in itertools.combinations(A,k):
+        for c_2 in itertools.combinations(B,k):
+            # print(c,c_2)
+            pass
+    k += 1
+print(k,len(A))
+exit()
+# First U-V expansion
+for i in range(0, len(A)):
+    for j in range(0,len(B)):
+        print(A[i],B[j])
+
+
+exit()
+
 g_reader = GraphFileReader(config['DataSetSection']['dataset'])
 G = nx.read_graphml(config['DataSetSection']['dataset'],node_type=int)
 g_reader.generate_graph()
@@ -158,6 +183,8 @@ for cc_index in range(len(cc_list)):
     print(A_cc)
     print(B_cc)
     miqu([], [], A_cc, B_cc, "U-V", G, g_reader.vertex_type_dic)
+
+
 
 
 total_a = len(A) # total num vertices type U in all graph
