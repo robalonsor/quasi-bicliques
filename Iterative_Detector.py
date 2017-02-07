@@ -122,22 +122,27 @@ def miqu(U, V, candU, candV, _type, g, type_of_vertices, di = 0, ):
         return
 
 
-# A = [1,2,3]
-# B = [4,5,6]
-A = range(1000)
-B = range(1000, 2000)
+A = [1,2,3,4]
+B = [5,6,7,8]
+# A = range(10)
+# B = range(10, 20)
 
 import itertools
 
 k = 3
+counter = 0
 while k < len(A) and k < len(B):
     for c in itertools.combinations(A,k):
         for c_2 in itertools.combinations(B,k):
-            # print(c,c_2)
+            print(c,c_2)
+            counter += 1
             pass
+    break
     k += 1
-print(k,len(A))
+# print(k,len(A))
+print(counter)
 exit()
+
 # First U-V expansion
 for i in range(0, len(A)):
     for j in range(0,len(B)):
@@ -147,7 +152,7 @@ for i in range(0, len(A)):
 exit()
 
 g_reader = GraphFileReader(config['DataSetSection']['dataset'])
-G = nx.read_graphml(config['DataSetSection']['dataset'],node_type=int)
+G = nx.read_graphml(config['DataSetSection']['dataset'], node_type=int)
 g_reader.generate_graph()
 
 cc_list = list(nx.connected_component_subgraphs(G)) ## list of connected components
