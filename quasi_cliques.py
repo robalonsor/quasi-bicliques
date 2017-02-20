@@ -1,106 +1,134 @@
 #!/usr/bin python3
-# Brute-force approach
-# to compute quasi-cliques (QC)
-# given a graphml file
-# since QC doesn't follow
-# the antimonoticity property
-# we need to check each possible
-# combination
-
-
-import PruneTechniques
-import time  # Only works in Linux
 import networkx as nx
+from operator import itemgetter
 
-from itertools import combinations
-
-##
-msu = 4
+u_min = 4
 # Relative size of the QC
-g_min = 0.5 # gamma min
+g_min = 0.5  # gamma min
 
-c = 0  # Number of expansions performed
-check = 0  # Number of visits to Enumeration Tree (to check for clusters)
+cluster_list = []
 
-clusterList = []  # List containing clusters found
 
-def quasi_clique(U, g):
-    global c
-    global check
-    c += 1
-    O = [] # potential_quasi_clique
+def quasi_clique(cc):
+    sorted_vertices = sorted(graph.degree_iter(), key=itemgetter(1), reverse=True)
+    # vertex = sorted_vertices.pop(0)[0]
+    # candidates_root = list(nx.to_dict_of_lists(cc).keys())
+    candidates_root = [x[0] for x in sorted_vertices]
+    counter_debug = 0
+    visited = set()
+    while len(candidates_root) > 0:
+        break
+        pass
 
-    # pre-processing
-    # every vertex in CC must have at least msu*g_min edges, otherwise no quasi-clique
+    candidates = list(candidates_root)
 
-    u_min_edges = int(msu*g_min)
+    vertex = candidates.pop(0)
+    # candidates.pop(candidates.index(vertex))
+    stack = [[[vertex], candidates]]  # initialization of stack
 
-    print(len(U))
-    for u in U.copy():
-        if G.degree(u) < u_min_edges:
-            U.remove(u)
-    print(len(U))
+    # O = []
 
-    for combination in combinations(U,msu):
-        H = g.subgraph(combination)
-        if not nx.is_connected(H):
-            continue
-        print(combination)
-        # break
-    return
-    if len(U) >= msu:
-        # Pruning candidates when we have reached the minimum size constraint
+    while stack:
+        if counter_debug >= 33:
+            break
+        counter_debug += 1
+        # process the candidates
+        O = list(stack[-1][0])
+        candidates = list(stack[-1][1])
+        print("O --> ", O, " candidates ->", candidates)
+        v_min_edges = round(len(O) * g_min, 0)  # all u in U must have these min number of edges to be a QBC
         try:
-            # check for connectedness of U+V. Since a QBC should be connected
-            # G = nx.Graph(g.to_dict_of_lists(di))
-            H = g.subgraph(U + V)
-            if not nx.is_connected(H):
-                raise Exception("Vertices U and V are not connected, so they cannot be part of an interesting QBC")
-            candU, candV, fail_flag = PruneTechniques.prune_vertices(U, V, candU, candV, g, [g_min,l_min], config)
-            if fail_flag:
-                # something went wrong when pruning. e.g. a node is disconnected from G
-                raise Exception("The current node in SET won't form a cluster")
-            check += 1
-            #  First check
-            u_min_edges = round(len(V)*l_min, 0)  # all u in U must have these min number of edges to be a QBC
-            for u in U:
-                u_edges = 0
-                for v in V:
-                    if g.number_of_edges(u,v) >= 1:
-                        u_edges += 1
-                    if u_edges >= u_min_edges:  # reached the ideal number of edges for the vertex u
-                        break  # optimization, no need to check further if curr. belongs to a QBC
-                if u_edges < u_min_edges:
-                    raise Exception("One vertex from U (", u, ") w/o enough edges to form a QBC with", v , " ---- edges",u_min_edges)
+            if tuple(O) in visited:
+                raise Exception("Already checked density. Pruning stage...")
 
-            print("\tCluster found! ")
-            # clusterList.append([U, V])
-            clusterList.append(Cluster(U, V))
-            # at this point we are sure that u,v are in the graph
+            if v_min_edges == 0:  # root nodes
+                raise Exception("Root nodes. Expanding if possible")
+            if len(candidates) <= 0:
+                raise Exception("No moro candidates to prune")
+                # prune candidates that doesn't have |O|*g_min degree (v_min_degree)
+                # u_edges_to_v = 0
+                # for i in range(0,len(candidates)):
+                #     for j in range(i,len(candidates)):
+                #         if cc.number_of_edges(candidates[i], candidates[j]) >= 1:
+                #             u_edges_to_v += 1
+                #         if u_edges_to_v >= v_min_edges:  # reached the ideal number of edges for the vertex u
+                #             break  # optimization, no need to check further if curr. belongs to a QC
+                # prune candidates based on diameter
         except Exception as er:
-
+            # print("\t Exception: ", er, "!!!!")
             pass
         finally:
-            pass
+            try:
+                # if tuple(O) in visited:
+                #     raise Exception("Already checked density")
+                # check for QC
+                if len(O) >= u_min:
+                    # checking for QC
+                    u_edges_to_v = 0
+                    for i in range(0, len(O)):
+                        for j in range(i, len(O)):
+                            if cc.number_of_edges(O[i], O[j]) >= 1:
+                                u_edges_to_v += 1
+                            if u_edges_to_v >= v_min_edges:
+                                continue
+                        if u_edges_to_v < v_min_edges:
+                            # it is not a QC
+                            raise Exception("O = ", O, " is not a quasi-clique")
+                    cluster_list.append(list(O)) if O not in cluster_list else ""
+                    # print("*****", O)
+            except Exception as er:
+                # print("\t\t Exception: ", er, "!!!!")
+                pass
+
+                # choosing next neighbor
+        # delete from stack if no further expansion possible
+        if len(candidates) == 0:
+            print("Candidate set empty")
+            stack.pop()
+            visited.add(tuple(O))
+            print(visited)
+            continue
+        next_neighbor = candidates.pop(0)  # sorted_vertices.pop(0)[0]
+        while tuple(O + [next_neighbor]) in visited and len(candidates) > 0:
+            next_neighbor = candidates.pop(0)  # sorted_vertices.pop(0)[0]
+        if tuple(O + [next_neighbor]) in visited:
+            print("Already visited", O + [next_neighbor], "Adding O to visits O= ", O, "cand = ", candidates)
+            stack.pop()
+            visited.add(tuple(O))
+            continue
+
+        # expansion of Enum. Tree
+        O.append(next_neighbor)
+        stack.append([O, candidates])
+        # print(stack)
+        # print(sorted_vertices)
+
+    print("final... O =   ", O[0])
+    candidates_root.pop(candidates_root.index(O[0]))
+    print("Re-starting considering V = ", candidates_root)
+
+    return 1
 
 
-G = nx.read_graphml('datasets/bgb_two_att.graphml', node_type=int)
+graph = nx.read_graphml('datasets/toy.graphml', node_type=int)
+# Pre-processing graph
+# every vertex in G must have at least u_min*g_min edges, otherwise no quasi-clique
+for v in graph.copy():
+    if graph.degree(v) == 0:  # u_min_edges:
+        graph.remove_node(v)
 
-cc_list = list(nx.connected_component_subgraphs(G)) ## list of connected components
-
+cc_list = list(nx.connected_component_subgraphs(graph))  ## list of connected components
 # Iterating through connected components
-elapsed_time = time.clock() # Starting timer
+# elapsed_time = time.clock() # Starting timer
 for cc_index in range(len(cc_list)):
-    cc = cc_list[cc_index]
-    vertices_in_cc = set(cc.nodes())
-
-    if len(vertices_in_cc) < msu:
+    vertices_in_cc = set(cc_list[cc_index].nodes())
+    if len(vertices_in_cc) < u_min:
         continue
     print("CC: ", vertices_in_cc)
-    quasi_clique(vertices_in_cc, G)
+
+    quasi_clique(nx.subgraph(graph, vertices_in_cc))
+    print("End of CC")
+
     break
 
-print("Total clusters found: ", len(clusterList))
-print("The following clusters have been found:  ")
-for c in clusterList:
-    print(c)
+print("Quasi-cliques in the graph: ", cluster_list)
