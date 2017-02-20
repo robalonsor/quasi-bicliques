@@ -1,6 +1,7 @@
 #!/usr/bin python3
 import networkx as nx
 from operator import itemgetter
+import time  # Only works in Linux
 
 u_min = 4
 # Relative size of the QC
@@ -16,7 +17,9 @@ def quasi_clique(cc):
     counter_debug = 0
     tree_traversal = 0
     visited = set()
+
     while len(candidates_root) > 0:
+        tree_traversal += 1
         candidates = list(candidates_root)
         vertex = candidates.pop(0)
         # candidates.pop(candidates.index(vertex))
@@ -29,16 +32,33 @@ def quasi_clique(cc):
             # process the candidates
             O = list(stack[-1][0])
             candidates = list(stack[-1][1])
-            print("O --> ", O, " candidates ->", candidates)
+            # print("O --> ", O, " candidates ->", candidates)
             v_min_edges = round(len(O) * g_min, 0)  # all u in U must have these min number of edges to be a QBC
+
             try:
                 if tuple(O) in visited:
                     raise Exception("Already checked density. Pruning stage...")
-
+                if len(O) <= u_min:
+                    raise Exception("|O| < gamma_min")
                 if v_min_edges == 0:  # root nodes
                     raise Exception("Root nodes. Expanding if possible")
                 if len(candidates) <= 0:
                     raise Exception("No moro candidates to prune")
+
+                # Diameter prunning
+                max_diameter = 2
+                intersection_of_vertices = set()
+                for vertex in O:
+                    neighbors_of_v = nx.single_source_shortest_path(cc, vertex, max_diameter)
+                    #print("neigh..", neighbors_of_v, " v = ", vertex)
+                    if intersection_of_vertices:
+                        # compute new intersection of vertices
+                        intersection_of_vertices = intersection_of_vertices.intersection(neighbors_of_v)
+                    else:
+                        intersection_of_vertices = set(neighbors_of_v.keys())
+
+                candidates = [item for item in candidates if item in intersection_of_vertices]
+
                     # prune candidates that doesn't have |O|*g_min degree (v_min_degree)
                     # u_edges_to_v = 0
                     # for i in range(0,len(candidates)):
@@ -53,9 +73,6 @@ def quasi_clique(cc):
                 pass
             finally:
                 try:
-                    # if tuple(O) in visited:
-                    #     raise Exception("Already checked density")
-                    # check for QC
                     if len(O) >= u_min:
                         # checking for QC
                         u_edges_to_v = 0
@@ -79,7 +96,7 @@ def quasi_clique(cc):
                 # print("Candidate set empty")
                 stack.pop()
                 visited.add(tuple(O))
-                print(visited)
+                # print(visited)
                 continue
             next_neighbor = candidates.pop(0)  # sorted_vertices.pop(0)[0]
             while tuple(O + [next_neighbor]) in visited and len(candidates) > 0:
@@ -89,7 +106,6 @@ def quasi_clique(cc):
                 stack.pop()
                 visited.add(tuple(O))
                 continue
-
             # expansion of Enum. Tree
             tree_traversal += 1
             O.append(next_neighbor)
@@ -100,7 +116,7 @@ def quasi_clique(cc):
     return tree_traversal
 
 
-graph = nx.read_graphml('datasets/toy.graphml', node_type=int)
+graph = nx.read_graphml('datasets/V_c10.graphml', node_type=int)
 # Pre-processing graph
 # every vertex in G must have at least u_min*g_min edges, otherwise no quasi-clique
 for v in graph.copy():
@@ -110,15 +126,16 @@ for v in graph.copy():
 cc_list = list(nx.connected_component_subgraphs(graph))  ## list of connected components
 # Iterating through connected components
 # elapsed_time = time.clock() # Starting timer
+elapsed_time = time.clock() # Starting timer
 for cc_index in range(len(cc_list)):
     vertices_in_cc = set(cc_list[cc_index].nodes())
     if len(vertices_in_cc) < u_min:
         continue
     print("CC: ", vertices_in_cc)
-
     print(quasi_clique(nx.subgraph(graph, vertices_in_cc)))
     print("End of CC")
-
     break
 
 print("Quasi-cliques in the graph: ", cluster_list)
+final_time = time.clock()-elapsed_time
+print("runtime: %s" % final_time)
