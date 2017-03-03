@@ -1,223 +1,121 @@
 #!/usr/bin python3
-# WARNING! Looking for QBC size 2 weight 2
-# will produce an error
-
-
-# A = [0,1,2,3,4,5,6,7,8]
-from GraphFileReader import GraphFileReader
-from Cluster import Cluster
-import PruneTechniques
-import time  # Only works in Linux
 import networkx as nx
-import configparser
-from itertools import combinations,chain
-
-##
-# Reading properties
-
-config = configparser.ConfigParser()
-config.read('ConfigFile.properties')
-#
-def powerset(iterable):
-    "powerset recipe"
-    s = list(iterable)
-    return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
-
-def str_to_bool(v):
-    return v.lower() == "true"
-##
-# Pruning tech. based on the 'interestingness' of the QBC
-# msu controls the min. number of vertices type u
-# msv controls the min. number of vertices type v
-
-msu = int(config['SizeSection']['msu'])  # First pruning technique.
-msv = int(config['SizeSection']['msv'])  # First pruning technique.
-##
-
-# Relative size of the QBC
-g_min = float(config['SizeSection']['gamma_min'])  # Gamma min
-l_min = float(config['SizeSection']['lambda_min'])  # Lambda min
-
-c = 0  # Number of expansions performed
-check = 0  # Number of visits to Enumeration Tree (to check for clusters)
-
-clusterList = []  # List containing clusters found
-print("Consider that raise error execption log is disabled")
-
-def miqu(U, V, candU, candV, _type, g, type_of_vertices, di = 0, ):
-    global c
-    global check
-    c += 1
-    if config['DebugOption']['expansion'].lower() == "true":
-        print(_type, U, V, "Cand_sets = ", candU, candV, "-*-")
-
-    try:
-        val = powerset(candU)
-        while True:
-            x = val.__next__()
-            print(x)
-    except StopIteration:
-        print("Iteration done.")
-
-    # for U in powerset(candU):
-    #     for V in powerset(candV):
-    #         print(U,V)
-
-    exit()
-
-    if len(U) >= msu and len(V) >= msv:
-        # Pruning candidates when we have reached the minimum size constraint
-        try:
-            # check for connectedness of U+V. Since a QBC should be connected
-            # G = nx.Graph(g.to_dict_of_lists(di))
-            H = g.subgraph(U + V)
-            if not nx.is_connected(H):
-                raise Exception("Vertices U and V are not connected, so they cannot be part of an interesting QBC")
-            candU, candV, fail_flag = PruneTechniques.prune_vertices(U, V, candU, candV, g, [g_min,l_min], config)
-            if fail_flag:
-                # something went wrong when pruning. e.g. a node is disconnected from G
-                raise Exception("The current node in SET won't form a cluster")
-            check += 1
-            #  First check
-            u_min_edges = round(len(V)*l_min, 0)  # all u in U must have these min number of edges to be a QBC
-            v_min_edges = round(len(U)*g_min, 0)  # likewise v in V min number of edges to be a QBC
-
-            for u in U:
-                u_edges = 0
-                for v in V:
-                    if g.number_of_edges(u,v) >= 1:
-                        u_edges += 1
-                    if u_edges >= u_min_edges:  # reached the ideal number of edges for the vertex u
-                        break  # optimization, no need to check further if curr. belongs to a QBC
-                if u_edges < u_min_edges:
-                    raise Exception("One vertex from U (", u, ") w/o enough edges to form a QBC with", v , " ---- edges",u_min_edges)
-            # at this point,
-            # u and v are in in G or CC
-            for v in V:
-                v_edges = 0
-                for u in U:
-                    if g.number_of_edges(u,v) >=1:
-                        v_edges += 1
-                    if v_edges >= v_min_edges: # reached the ideal number of edges for vertex v
-                        break
-                if v_edges < v_min_edges:  # if the min # of edges v is less than v_edge, v cannot be part of a QBC
-                    raise Exception("One vertex from V (", v, ") w/o enough edges to form a QBC with ", u)
-
-            # if u_edges >= gamma_min_edges and v_edges >= lambda_min_edges:
-            # at this point there is no way U, V are not a cluster
-            if config['DebugOption']['cluster'].lower() == "true":
-                print("\tCluster found! ")
-            # clusterList.append([U, V])
-            clusterList.append(Cluster(U, V))
-            # at this point we are sure that u,v are in the graph
-        except Exception as er:
-            if config['DebugOption']['exception'].lower() == "true":
-                print("\t Exp: ", er, "!!!!")
-            pass
-        finally:
-            pass
-
-    if len(U) >= len(A) and len(V) >= len(B):
-        print("No more U or V expansion: Max. QB in G")
-        return
-
-
-A = [1,2,3,4]
-B = [5,6,7,8]
-# A = range(10)
-# B = range(10, 20)
-
+from operator import itemgetter
+import time  # Only works in Linux
 import itertools
 
-k = 3
-counter = 0
-while k < len(A) and k < len(B):
-    for c in itertools.combinations(A,k):
-        for c_2 in itertools.combinations(B,k):
-            print(c,c_2)
-            counter += 1
-            pass
-    break
-    k += 1
-# print(k,len(A))
-print(counter)
-exit()
+__author__ = 'Roberto Alonso <robalonsor@gmail.com>'
 
-# First U-V expansion
-for i in range(0, len(A)):
-    for j in range(0,len(B)):
-        print(A[i],B[j])
+# U = blue
+# V = red
+
+# Relative size of the QC
+u_min = 3  # minimum size of the quasi-biclique
+v_min = 3  # minimum size of the quasi-biclique
+
+gamma_min = 0.5 # minimum density of the quasi-biclique
+lambda_min = 0.5  # minimum density of the quasi-biclique
+
+cluster_list = set()
 
 
-exit()
+def detect_quasi_biclique(graph, cc):
+    # Sorting according to degree. Considering this order, we expand the enumeration tree
+    #TODO: fix sorting. should be sorted w.r.t tpye of vertex
+    # sorted_vertices = sorted(graph.degree_iter(), key=itemgetter(1), reverse=True)
+    candidates_U_root = set(n for n, d in cc.nodes(data=True) if d['color'] == "red")
+    candidates_V_root = set(graph) - candidates_U_root
 
-g_reader = GraphFileReader(config['DataSetSection']['dataset'])
-G = nx.read_graphml(config['DataSetSection']['dataset'], node_type=int)
-g_reader.generate_graph()
+    k = min(u_min, v_min)
+    # TODO: check if it make sense to make U-V expansion with u_min != v_min
+    counter = 0
+    while k <= len(candidates_U_root) and k <= len(candidates_V_root):
+        for c in itertools.combinations(candidates_U_root, k):
+            if k < u_min:
+                continue
+            for c_2 in itertools.combinations(candidates_V_root, k):
+                if k < v_min:
+                    continue
+                #TODO: Make correctio in the expasion step. We need to consider combinations for curr node
+                print("*Current main node:  ", c, c_2)
+                counter += 1
+                # Initializing candidate sets
+                candidates_U = list(set(candidates_U_root) - set(c))
+                candidates_V = list(set(candidates_V_root) - set(c_2))
 
-cc_list = list(nx.connected_component_subgraphs(G)) ## list of connected components
-# Splitting vertices according to type
-A=set()
-B=set()
+                vertex_u_in_O = c
+                vertex_v_in_O = c_2
+                # the following stack is used in the U-expansion
+                O = [list(vertex_u_in_O), list(vertex_v_in_O)]
+                # U-expansion
+                while len(candidates_U) > 0:
+                    # O = stack_U[-1][0] #, stack_U[-1][1]]  # set O = {U,V}; potential quasi-biclique
+                    print("\t(U-exp) O --> ", O, " candidates U->", candidates_U, " candidates V->", candidates_V)
+                    #print("Checking O", O)
+                    # Expanding to the next vertex
+                    # TODO: select better vertices considering e.g. degree
+                    O[0].append(candidates_U.pop(0))
+                    if len(candidates_U) <= 0:
+                        # check for QBC
+                        print("\tFinally, checking ", O)
+                        #break
+                # V-expansion
+                #print(vertex_u_in_O)
+                O = [list(vertex_u_in_O), list(vertex_v_in_O)]
+                # print("Starting V-expansion with:")
+                # print(O, candidates_U, candidates_V)
+                while len(candidates_V) > 0:
+                    print("\t(V-exp) O --> ", O, " candidates U->", candidates_U, " candidates V->", candidates_V)
+                    #print("Checking O", O)
+                    # Expanding to the next vertex
+                    # TODO: select better vertices considering e.g. degree
+                    O[1].append(candidates_V.pop(0))
+                    if len(candidates_V) <= 0:
+                        # check for QBC
+                        print("Finally, checking ", O)
+                        #break
+                #exit()
 
-for v_id in g_reader.vertex_type_dic:
-    if g_reader.vertex_type_dic[v_id].lower() == "a":
-        A.add(v_id)
-    else:
-        B.add(v_id)
+        k += 1
+        # break
+    print(counter)
+    exit()
 
-# at this point A, B are sets of vertices U, V, respectively
-# Iterating through connected components
-elapsed_time = time.clock() # Starting timer
-for cc_index in range(len(cc_list)):
-    cc = cc_list[cc_index]
+def get_quasi_bicliques():
+    graph = nx.read_graphml('datasets/bipartite.graphml', node_type=int)
+    print("Looking for quasi bicliques with gamma <%s> density; lambda <%s> density "
+          "and min. size of U = <%s> and V = <%s>"% (gamma_min, lambda_min, u_min, v_min))
+    if not nx.is_bipartite(graph):
+        print("Not a bipartite graph")
+        return
+    elapsed_time = time.time()  # Starting timer
+    # TODO: pre-processing graph
 
-    # cc = cc_list[0]
-    vertices_in_cc = set(cc.nodes())
-    print("CC: ", vertices_in_cc)
+    # color = nx.get_node_attributes(graph, 'color')
+    # print("Att: ")
+    # print(color)
+    #
+    cc_list = list(nx.connected_component_subgraphs(graph))  ## list of connected components
+    # Iterating through connected components
+    for cc in cc_list:
+        if not nx.is_bipartite(cc):
+            continue
+        u_vertices = set(n for n, d in cc.nodes(data=True) if d['color'] == "red")
+        v_vertices = set(graph) - u_vertices
 
-    A_cc = A.intersection(vertices_in_cc)
-    B_cc = B.intersection(vertices_in_cc)
+        if len(v_vertices) < v_min or len(u_vertices) < u_min:
+            continue
+        print("CC of # vertices: ", int(len(u_vertices)+len(v_vertices)))
+        # global_tree_traverse = detect_quasi_biclique(graph, nx.subgraph(graph, vertices_in_cc))
+        detect_quasi_biclique(graph, cc)
+        print("End of CC")
+        break # TODO: delete after testing
 
-    A_cc = list(A_cc)
-    B_cc = list(B_cc)
+    print("Quasi-bicliques in the graph: ", cluster_list)
+    print("Total QBC in graph: ", len(cluster_list))
+    final_time = time.time()-elapsed_time
+    # print("# visits to SET: %s" % global_tree_traverse)
 
-    A_cc.sort()
-    B_cc.sort()
+    print("runtime: %s" % final_time)
 
-    print(A_cc)
-    print(B_cc)
-    miqu([], [], A_cc, B_cc, "U-V", G, g_reader.vertex_type_dic)
-
-
-
-
-total_a = len(A) # total num vertices type U in all graph
-total_b = len(B) # total num vertices type V in all graph
-
-
-final_time = time.clock()-elapsed_time
-total_combinations = (2**total_a-1)*(2**total_b-1)
-print("************\nTheoretical number of combinations to be explored", total_combinations)
-print("*************\nNumber of visits to enum. tree", c)
-print("Number of actual checks (for cluster)", check)
-print("Minimum size of U and V, respectively", msu,msv)
-
-print("Time:  ", final_time)  # Consider processing of QBC, i.e. loading time (from file to graph) not considered
-
-
-print("Rules activated:")
-rules = "*"
-active_rules= []
-if str_to_bool(config['PruneSection']['diameter']): active_rules.append("Diameter")
-if str_to_bool(config['PruneSection']['degree']): active_rules.append("Degree")
-active_rules = "*\n".join(active_rules)
-print(active_rules)
-
-#print("Minimum size of the QBC for U and V\nDiamaeter pruning of cand sets")
-# print(clusterList)
-print("Total clusters found: ", len(clusterList))
-if str_to_bool(config['OutputFormat']['print_clusters']):
-    print("The following clusters have been found:  ")
-    for c in clusterList:
-        print(c)
+get_quasi_bicliques()
