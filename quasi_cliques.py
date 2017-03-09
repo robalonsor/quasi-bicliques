@@ -4,11 +4,11 @@ __author__ = 'Roberto Alonso <robalonsor@gmail.com>'
 # Inspired in the work of
 # [1] Abello
 # [2] Liu
-# [3] Gunnemann
+# [3] Guennemann
 
 # Relative size of the QC
-v_min = 5  # minimum size of the quasi-clique
-g_min = 0.6  # minimum density of the quasi-clique
+v_min = 6  # minimum size of the quasi-clique
+g_min = 0.7  # minimum density of the quasi-clique
 
 debug_prun = False
 debug_traversal = False
@@ -143,8 +143,9 @@ def detect_quasi_clique(q, g, cc, r_queue):
             stack[-1][1].pop(0)  # deleting from curr. node in enum. tree
             while tuple(O + [next_neighbor]) in visited and len(candidates) > 0:
                 next_neighbor = candidates.pop(0)  # sorted_vertices.pop(0)[0]
+            # TODO: Apparently, there are no edge cases that activates this rule (delete?)
             if tuple(O + [next_neighbor]) in visited:
-                # print("Already visited", O + [next_neighbor], "Adding O to visits O= ", O, "cand = ", candidates)
+                print("Already visited", O + [next_neighbor], "Adding O to visits O= ", O, "cand = ", candidates)
                 stack.pop()
                 visited.add(tuple(O))
                 continue
@@ -153,7 +154,7 @@ def detect_quasi_clique(q, g, cc, r_queue):
             tree_traversal += 1
             O.append(next_neighbor)
             stack.append([O, candidates])
-
+            O.sort() # TODO: verify this!
             visited.add(tuple(stack[-1][0]))
         # at this point there is nothing left in the stack
         break
@@ -206,7 +207,7 @@ if __name__ == '__main__':
 
     cc_list = list(nx.connected_component_subgraphs(graph))  ## list of connected components
     # Iterating through connected components
-    print(cc_list[0])
+    # print(cc_list[0])
     for cc_index in range(len(cc_list)):
         vertices_in_cc = set(cc_list[cc_index].nodes())
         if len(vertices_in_cc) < v_min:

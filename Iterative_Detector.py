@@ -17,24 +17,31 @@ gamma_min = 0.5 # minimum density of the quasi-biclique
 lambda_min = 0.5  # minimum density of the quasi-biclique
 
 cluster_list = set()
+
 debug_traversal = False
+debug_traversal_u_set = False
+debug_traversal_v_set = False
+debug_traversal_visted = False
 
 def node_to_tuple(O):
     return tuple(O[0]), tuple(O[1])
 
 def detect_quasi_biclique(graph, cc):
     # Sorting according to degree. Considering this order, we expand the enumeration tree
-    #TODO: fix sorting. should be sorted w.r.t tpye of vertex
+    # TODO: fix sorting. should be sorted w.r.t type of vertex
+    global debug_traversal
+    global debug_traversal_u_set
+    global debug_traversal_v_set
+    global debug_traversal_visted
     # sorted_vertices = sorted(graph.degree_iter(), key=itemgetter(1), reverse=True)
     candidates_U_root = set(n for n, d in cc.nodes(data=True) if d['color'] == "red")
     candidates_V_root = set(graph) - candidates_U_root
-
-    visited = set()
 
     k = min(u_min, v_min)
     # TODO: check if it make sense to make U-V expansion with u_min != v_min
     counter = 0 # the number of expansion conducted even if redundant
     actual_check = 0 # the real number of checked nodes
+    visited = set()
     while k <= len(candidates_U_root) and k <= len(candidates_V_root):
         for c in itertools.combinations(candidates_U_root, k):
             if k < u_min:
@@ -42,10 +49,11 @@ def detect_quasi_biclique(graph, cc):
             for c_2 in itertools.combinations(candidates_V_root, k):
                 if k < v_min:
                     continue
-                #TODO: Make correctio in the expasion step. We need to consider combinations for curr node
-                print("*Current main node:  ", c, c_2) if debug_traversal else False
+                # TODO: Make correction in the expansion step. We need to consider combinations for curr node
+
+                print("*U-V expansion O -->  ", c, c_2) if debug_traversal else False
                 counter += 1
-                actual_check += 1
+                # actual_check += 1
                 # Initializing candidate sets
                 candidates_U = list(set(candidates_U_root) - set(c))
                 candidates_V = list(set(candidates_V_root) - set(c_2))
@@ -59,61 +67,103 @@ def detect_quasi_biclique(graph, cc):
                 # the following stack is used in the U-expansion
                 O = [list(vertex_u_in_O), list(vertex_v_in_O)]
                 # TODO: make corrections in the way we enumerate the tree
-                visited.add(node_to_tuple(O))
                 # U-expansion
-                while len(candidates_U) > 0:
-                    # O = stack_U[-1][0] #, stack_U[-1][1]]  # set O = {U,V}; potential quasi-biclique
-                    counter += 1
-                    print("\t(U-exp) O --> ", O, " candidates U->", candidates_U, " candidates V->", candidates_V) if debug_traversal else False
-                    #print("Checking O", O)
-                    # Expanding to the next vertex
-                    # TODO: select better vertices considering e.g. degree
-                    O[0].append(candidates_U.pop(0))
-                    O[0].sort()
-                    if node_to_tuple(O) in visited:
-                        continue
-
-                    visited.add(node_to_tuple(O))
-                    actual_check += 1
-
-                    if len(candidates_U) <= 0:
-                        # check for QBC
-                        print("\tFinally, checking ", O) if debug_traversal else False
+                U_stack = [[O[0], candidates_U]]  # initialization of stack for node
+                # visited = set()
+                while U_stack:
+                    O_u = list(U_stack[-1][0])  # set O; potential quasi-clique
+                    O_u.sort()
+                    candidates = list(U_stack[-1][1])  # candidates to be part of the potential quasi-clique O
+                    if (tuple(O_u), tuple(O[1])) not in visited:
+                        # We have not visited current node
+                        # so, we check for cluster
+                        # Checking cluster
+                        print("\t**(U-exp) O --> ", O_u, O[1], " candidates ->", candidates, []) if debug_traversal_u_set else False
                         actual_check += 1
-                        #break
+                        visited.add((tuple(O_u), tuple(O[1])))
+
+                    # At this point we have checked for cluster
+                    # if there are candidates, we expand
+
+                    if len(candidates) == 0:
+                        # print("\t  **(U-exp) Finally checking O set", O_u) if debug_traversal_u_set else False
+                        U_stack.pop()
+                        # actual_check += 1
+                        continue
+                    # TODO: select better vertices considering e.g. degree
+
+                    # Expanding to the next suitable vertex
+
+                    next_neighbor = candidates.pop(0)  # sorted_vertices.pop(0)[0]
+                    U_stack[-1][1].pop(0)  # deleting from curr. node in enum. tree
+                    print("\t  O+u_next=", tuple(O_u + [next_neighbor])) if debug_traversal_visted else False
+                    print("\t  visited=", visited) if debug_traversal_visted else False
+
+                    while (tuple(O_u + [next_neighbor]), tuple(O[1])) in visited and len(candidates) > 0:
+                        next_neighbor = candidates.pop(0)  # sorted_vertices.pop(0)[0]
+                    # TODO: Apparently, there are no edge cases that activates this rule (delete?)
+                    # if tuple(O_u + [next_neighbor]) in visited:
+                    #     # this means len(candidates) <= 0, so add this last element to stack
+                    #     print("last element")
+                    #     U_stack.pop()
+                    #     visited.add(tuple(O_u))
+                    #     continue
+                    # At this point, we know that there is at least one
+                    # vertex to use in the expansion step. We expand
+
+                    O_u.append(next_neighbor)
+                    O_u.sort()
+                    U_stack.append([O_u, candidates])
+                    # visited.add(tuple(O_u))
+                    # visited.add((tuple(O_u), tuple(O[1])))
+                    # print(visited)
+                    # print("*", (tuple(O_u), tuple(O[1])))
+                    # exit()
+
                 # V-expansion
-                #print(vertex_u_in_O)
                 O = [list(vertex_u_in_O), list(vertex_v_in_O)]
-                # print("Starting V-expansion with:")
-                # print(O, candidates_U, candidates_V)
-                while len(candidates_V) > 0:
-                    counter += 1
-                    print("\t(V-exp) O --> ", O, " candidates U->", candidates_U, " candidates V->", candidates_V) if debug_traversal else False
-                    #print("Checking O", O)
-                    # Expanding to the next vertex
-                    # TODO: select better vertices considering e.g. degree
-                    O[1].append(candidates_V.pop(0))
-                    O[1].sort()
-
-                    if node_to_tuple(O) in visited:
-                        continue
-                    visited.add(node_to_tuple(O))
-                    actual_check += 1
-                    if len(candidates_V) <= 0:
-                        # check for QBC
-                        print("Finally, checking ", O) if debug_traversal else False
+                V_stack = [[O[1], candidates_V]]  # initialization of stack for node
+                # visited = set()
+                while V_stack:
+                    O_v = list(V_stack[-1][0])  # set O; potential quasi-clique
+                    O_v.sort()
+                    candidates = list(V_stack[-1][1])  # candidates to be part of the potential quasi-clique O
+                    if (tuple(O[0]), tuple(O_v)) not in visited:
+                        print("\t++(V-exp) O --> ", O[0], O_v, " candidates ->", [], candidates) if debug_traversal_v_set else False
                         actual_check += 1
-                        #break
-                #exit()
+                        visited.add((tuple(O[0]), tuple(O_v)))
+                    if len(candidates) == 0:
+                        # print("\t  ++(V-exp) Finally checking O set") if debug_traversal_v_set else False
+                        V_stack.pop()
+                        # actual_check += 1
+                        continue
+                    # TODO: select better vertices considering e.g. degree
+                    # Expanding to the next suitable vertex
+                    next_neighbor = candidates.pop(0)  # sorted_vertices.pop(0)[0]
+                    V_stack[-1][1].pop(0)  # deleting from curr. node in enum. tree
+
+                    print("\t  O+v_next=", tuple(O_v + [next_neighbor])) if debug_traversal_visted else False
+                    print("\t  visited=", visited) if debug_traversal_visted else False
+
+                    while (tuple(O[0]), tuple(O_v + [next_neighbor])) in visited and len(candidates) > 0:
+                        next_neighbor = candidates.pop(0)  # sorted_vertices.pop(0)[0]
+                    # actual_check += 1
+                    O_v.append(next_neighbor)
+                    O_v.sort()
+                    V_stack.append([O_v, candidates])
+                    # visited.add(tuple(O_v))
+                    # visited.add((tuple(O[0]), tuple(O_v)))
 
         k += 1
         # break
+    # print(visited)
     print(counter, actual_check)
     # exit()
 
+
 def get_quasi_bicliques():
-    # graph = nx.read_graphml('datasets/toy_bipartite.graphml', node_type=int)
-    graph = nx.read_graphml('datasets/amazon.graphml', node_type=int)
+    graph = nx.read_graphml('datasets/toy_bipartite.graphml', node_type=int)
+    # graph = nx.read_graphml('datasets/amazon.graphml', node_type=int)
     print("Looking for quasi bicliques with gamma <%s> density; lambda <%s> density "
           "and min. size of U = <%s> and V = <%s>"% (gamma_min, lambda_min, u_min, v_min))
     if not nx.is_bipartite(graph):
@@ -137,7 +187,8 @@ def get_quasi_bicliques():
 
         if len(v_vertices) < v_min or len(u_vertices) < u_min:
             continue
-        print("CC of # vertices: |U| = %s ,  |V| = %s" % (len(u_vertices), len(v_vertices)))
+        print("CC of # vertices: |U| = %s ,  |V| = %s   tota nodes SET: %s" % (len(u_vertices), len(v_vertices),
+                                                                               (2**len(u_vertices)-1)*(2**len(v_vertices)-1)))
         # global_tree_traverse = detect_quasi_biclique(graph, nx.subgraph(graph, vertices_in_cc))
         detect_quasi_biclique(graph, cc)
         print("End of CC")
