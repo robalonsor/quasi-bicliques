@@ -6,20 +6,20 @@ import itertools
 
 __author__ = 'Roberto Alonso <robalonsor@gmail.com>'
 
-# U = blue
-# V = red
+# U = red
+# V = blue
 
 # Relative size of the QC
-u_min = 2  # minimum size of the quasi-biclique
-v_min = 4  # minimum size of the quasi-biclique
+u_min = 1  # minimum size of the quasi-biclique
+v_min = 1  # minimum size of the quasi-biclique
 
 gamma_min = 0.5  # minimum density of the quasi-biclique
 lambda_min = 0.5  # minimum density of the quasi-biclique
 
 cluster_list = set()
-debug_traversal = False
-debug_traversal_u_set = False
-debug_traversal_v_set = False
+debug_traversal = True
+debug_traversal_u_set = True
+debug_traversal_v_set = True
 debug_traversal_visited = False
 elapsed_time = time.time()
 
@@ -32,13 +32,12 @@ def detect_quasi_biclique(graph, cc):
     global debug_traversal_visited
     # sorted_vertices = sorted(graph.degree_iter(), key=itemgetter(1), reverse=True)
     candidates_U_root = set(n for n, d in cc.nodes(data=True) if d['color'] == "red")
-    candidates_V_root = set(graph) - candidates_U_root
+    candidates_V_root = set(n for n, d in cc.nodes(data=True) if d['color'] == "blue")
 
     print(len(candidates_U_root))
     print(len(candidates_V_root))
     k = min(u_min, v_min)
     print(k)
-    # TODO: check if it make sense to make U-V expansion with u_min != v_min
     counter = 0 # the number of expansion conducted even if redundant
     actual_check = 0 # the real number of checked nodes
     visited = set()
@@ -46,15 +45,10 @@ def detect_quasi_biclique(graph, cc):
         for c in itertools.combinations(candidates_U_root, k):
             # if k < u_min:
             #     continue
-            # TODO: Make correction in the U-V expansion tree
-            # if u=2 v!= 2 then there is an error
-            # since we increase the k and u+k = 3, and |u| <=2
             for c_2 in itertools.combinations(candidates_V_root, k):
 
                 # if k < v_min:
                 #     continue
-                # TODO: Make correction in the expansion step. We need to consider combinations for curr node
-
 
                 print("*U-V expansion O -->  ", c, c_2) if debug_traversal else False
                 counter += 1
@@ -71,7 +65,6 @@ def detect_quasi_biclique(graph, cc):
 
                 # the following stack is used in the U-expansion
                 O = [list(vertex_u_in_O), list(vertex_v_in_O)]
-                # TODO: make corrections in the way we enumerate the tree
                 # U-expansion
                 U_stack = [[O[0], candidates_U]]  # initialization of stack for node
                 # visited = set()
@@ -86,6 +79,8 @@ def detect_quasi_biclique(graph, cc):
                         print("\t**(U-exp) O --> ", O_u, O[1], " candidates ->", candidates, []) if debug_traversal_u_set else False
                         actual_check += 1
                         visited.add((tuple(O_u), tuple(O[1])))
+
+                        # TODO: Here we have to check if U, V is a QBC
 
                     # At this point we have checked for cluster
                     # if there are candidates, we expand
@@ -106,7 +101,7 @@ def detect_quasi_biclique(graph, cc):
 
                     while (tuple(O_u + [next_neighbor]), tuple(O[1])) in visited and len(candidates) > 0:
                         next_neighbor = candidates.pop(0)  # sorted_vertices.pop(0)[0]
-                    # TODO: Apparently, there are no edge cases that activates this rule (delete?)
+                    # TODO: Apparently, there are no edge cases that activate this rule (delete?)
                     # if tuple(O_u + [next_neighbor]) in visited:
                     #     # this means len(candidates) <= 0, so add this last element to stack
                     #     print("last element")
@@ -124,8 +119,10 @@ def detect_quasi_biclique(graph, cc):
                     # print(visited)
                     # print("*", (tuple(O_u), tuple(O[1])))
 
-
+                #
                 # V-expansion
+                #
+                #
                 O = [list(vertex_u_in_O), list(vertex_v_in_O)]
                 V_stack = [[O[1], candidates_V]]  # initialization of stack for node
                 # visited = set()
@@ -174,7 +171,7 @@ def detect_quasi_biclique(graph, cc):
 
 def get_quasi_bicliques():
     # graph = nx.read_graphml('datasets/toy_bipartite.graphml', node_type=int)
-    graph = nx.read_graphml('datasets/amazon.graphml', node_type=int)
+    graph = nx.read_graphml('datasets/bipartite.graphml', node_type=int)
     print("Looking for quasi bicliques with gamma <%s> density; lambda <%s> density "
           "and min. size of U = <%s> and V = <%s>"% (gamma_min, lambda_min, u_min, v_min))
     if not nx.is_bipartite(graph):
@@ -190,7 +187,11 @@ def get_quasi_bicliques():
         if not nx.is_bipartite(cc):
             continue
         u_vertices = set(n for n, d in cc.nodes(data=True) if d['color'] == "red")
-        v_vertices = set(graph) - u_vertices
+        v_vertices = set(n for n, d in cc.nodes(data=True) if d['color'] == "blue")
+
+        # v_vertices = set(graph) - u_vertices  # TODO: re-enable this after pre-processing completed
+                                                # the current problem is that if there are disconnected \
+                                                # red nodes, u_vertices contains them, and v_vertices fails
 
         if len(v_vertices) < v_min or len(u_vertices) < u_min:
             print("skipping CC", v_min,u_min)
