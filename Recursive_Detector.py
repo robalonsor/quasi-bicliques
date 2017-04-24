@@ -88,7 +88,6 @@ def miqu(U, V, candU, candV, _type, g, type_of_vertices, di = 0):
                         break
                 if v_edges < v_min_edges:  # if the min # of edges v is less than v_edge, v cannot be part of a QBC
                     raise Exception("One vertex from V (", v, ") w/o enough edges to form a QBC with ", u)
-
             # if u_edges >= gamma_min_edges and v_edges >= lambda_min_edges:
             # at this point there is no way U, V are not a cluster
             if config['DebugOption']['cluster'].lower() == "true": print("\tCluster found! ")
