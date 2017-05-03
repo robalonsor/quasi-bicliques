@@ -3,6 +3,7 @@ import networkx as nx
 from operator import itemgetter
 import time  # Only works in Linux
 import itertools
+import PruneCandidates
 
 __author__ = 'Roberto Alonso <robalonsor@gmail.com>'
 
@@ -11,8 +12,8 @@ __author__ = 'Roberto Alonso <robalonsor@gmail.com>'
 # SET = Set Enumeration Tree as defined in [1,2,3]
 
 # Relative size of the QC
-u_min = 1  # minimum size of the quasi-biclique
-v_min = 1  # minimum size of the quasi-biclique
+u_min = 5  # minimum size of the quasi-biclique
+v_min = 5  # minimum size of the quasi-biclique
 
 gamma_min = 0.5  # minimum density of the quasi-biclique
 lambda_min = 0.5  # minimum density of the quasi-biclique
@@ -29,6 +30,33 @@ debug_traversal_visited = False # Shows the set of visited nodes in the Enum. Tr
 
 
 elapsed_time = time.time()
+
+
+def is_quasi_biclique(O_u, O_v, cc):
+    # Checking for QBC condition w.r.t {O_u, O_v}
+
+    min_u_edges = round(lambda_min * len(O_v))  # min. number of edges from V to U
+    min_v_edges = round(gamma_min * len(O_u))  # min, num. edges from U to V
+    for u in O_u:
+        u_edges = 0
+        for v in O_v:
+            if cc.number_of_edges(u, v) >= 1:
+                u_edges += 1
+            if u_edges >= min_u_edges:  # reached the ideal number of edges for the vertex u
+                break  # optimization, no need to check further if curr. belongs to a QBC
+        if u_edges < min_u_edges:
+            return False
+    for v in O_v:
+        v_edges = 0
+        for u in O_u:
+            if cc.number_of_edges(u, v) >= 1:
+                v_edges += 1
+            if v_edges >= min_v_edges:  # reached the ideal number of edges for vertex v
+                break
+        if v_edges < min_v_edges:  # if the min # of edges v is less than v_edge, v cannot be part of a QBC
+            return False
+    return True
+
 
 def detect_quasi_biclique(graph, cc):
     global debug_traversal
@@ -53,23 +81,22 @@ def detect_quasi_biclique(graph, cc):
             for c_2 in itertools.combinations(candidates_V_root, k):
                 print("*U-V expansion O -->  ", c, c_2) if debug_traversal else False
                 counter += 1
-                # actual_check += 1
-                # Initializing candidate sets
 
+                # Initializing candidate sets
                 # candidates_U = list(set(candidates_U_root) - set(c))
                 # candidates_V = list(set(candidates_V_root) - set(c_2))
-                # Assert candidates_i_root is sorted
                 candidates_U = []
                 candidates_V = []
                 copy_curr_U_in_O = list(c)
                 copy_curr_V_in_O = list(c_2)
                 vertex_u_in_O = list(c)
                 vertex_v_in_O = list(c_2)
-                # Initializing this way is O(n) but at least we save some space compared
+                # Initializing this way is O(n+m) but at least we save some space compared
                 # to the set approach that uses more memory but is O(1)
+                # Basically we are doing candiates_set - c (i.e. candidates_in_U = U \ O_u
                 i = 0
                 while i < len(candidates_U_root):
-                    if len(copy_curr_U_in_O) <=0:
+                    if len(copy_curr_U_in_O) <= 0:
                         candidates_U.append(candidates_U_root[i])
                     else:
                         if candidates_U_root[i] != copy_curr_U_in_O[0]:
@@ -78,6 +105,7 @@ def detect_quasi_biclique(graph, cc):
                         else:
                             copy_curr_U_in_O.pop(0)
                     i += 1
+                # Likewise candidates_in_V = V \ O_v
                 i = 0
                 while i < len(candidates_V_root):
                     if len(copy_curr_V_in_O) <= 0:
@@ -96,7 +124,7 @@ def detect_quasi_biclique(graph, cc):
                 while U_stack:
                     O_u = list(U_stack[-1][0])  # set O; potential quasi-clique
                     O_u.sort()
-                    candidates = list(U_stack[-1][1])  # candidates to be part of the potential quasi-clique O
+                    candidates = list(U_stack[-1][1])  # candidates U to be part of the potential quasi-clique O
                     if (tuple(O_u), tuple(O[1])) not in visited and len(O_u) >= u_min:
                         # We have not visited current node
                         # so, we check for cluster
@@ -104,10 +132,16 @@ def detect_quasi_biclique(graph, cc):
                         print("\t**(U-exp) O --> ", O_u, O[1], " candidates ->", candidates, []) if debug_traversal_u_set else False
                         actual_check += 1
                         visited.add((tuple(O_u), tuple(O[1])))
+                        # If {O_u, O_v} is a potential QBC...
+                        if is_quasi_biclique(O_u, O[1], cc):
+                            cluster_list.add((tuple(O_u), tuple(O[1])))
 
-                        # TODO: Here we have to check if U, V is a QBC
+                        # At this point we have checked for cluster
+                    #Pruning candidate set
 
-                    # At this point we have checked for cluster
+                    candidates = PruneCandidates.prune_candidates_u(O_u, O[1], candidates, [], cc, gamma_min, lambda_min)
+                    # exit()
+                    #
                     # if there are candidates, we expand
 
                     if len(candidates) == 0:
@@ -121,7 +155,6 @@ def detect_quasi_biclique(graph, cc):
 
                     next_neighbor = candidates.pop(0)  # getting neighbor w.r.t order in cand. set
                     U_stack[-1][1].pop(0)  # deleting, also, neighbor from curr. node in enum. tree
-
 
                     print("\t  O+u_next=", tuple(O_u + [next_neighbor])) if debug_traversal_visited else False
                     print("\t  visited=", visited) if debug_traversal_visited else False
@@ -146,6 +179,7 @@ def detect_quasi_biclique(graph, cc):
 
                     #After expanding we continue check the U_stack
                     #
+                # At this point we have checked the U_stack and now we check the V_stack
                 #
                 # V-expansion
                 #
@@ -155,15 +189,20 @@ def detect_quasi_biclique(graph, cc):
                 while V_stack:
                     O_v = list(V_stack[-1][0])  # set O; potential quasi-clique
                     O_v.sort()
-                    if time.time()-elapsed_time > 100:
-                        print("Killing... taking more than 300 seconds")
-                        return
+                    # if time.time()-elapsed_time > 100:
+                    #     print("Killing... taking more than 300 seconds")
+                    #     return
                     candidates = list(V_stack[-1][1])  # candidates to be part of the potential quasi-clique O
                     if (tuple(O[0]), tuple(O_v)) not in visited and len(O_v) >= v_min:
                         print("\t++(V-exp) O --> ", O[0], O_v, " candidates ->", [], candidates) if debug_traversal_v_set else False
                         visited.add((tuple(O[0]), tuple(O_v)))
                         actual_check += 1
+                        if is_quasi_biclique(O[0], O_v, cc):
+                            cluster_list.add((tuple(O[0]), tuple(O_v)))
+                    # Pruning candidates
 
+                    candidates = PruneCandidates.prune_candidates_v(O[0], O_v, [], candidates, cc, gamma_min,
+                                                                    lambda_min)
                     if len(candidates) == 0:
                         # print("\t  ++(V-exp) Finally checking O set") if debug_traversal_v_set else False
                         V_stack.pop()
@@ -185,12 +224,12 @@ def detect_quasi_biclique(graph, cc):
                     V_stack.append([O_v, candidates])
                     # visited.add(tuple(O_v))
                     # visited.add((tuple(O[0]), tuple(O_v)))
-                    # if len(O_v) > 50:
 
         k += 1
         # break
     # print(visited)
-    print(counter, actual_check)
+    print("# of U-V expansions:  %s - # of visits to SET:  %s" % (counter, actual_check))
+
 
 def pre_processing(graph):
     global debug_pre_processing
@@ -224,17 +263,22 @@ def pre_processing(graph):
         v_after = len([n for n, d in graph.nodes_iter(data=True) if d['color'] == 'blue'])
         print("After pre-processing.  |U| = %s  |V| = %s" % (u_after, v_after)) if debug_pre_processing else False
 
+
 def get_quasi_bicliques():
+    pre_processing_flag = False
+
     # graph = nx.read_graphml('datasets/toy_bipartite.graphml', node_type=int)
-    graph = nx.read_graphml('datasets/bipartite.graphml', node_type=int)
+    # graph = nx.read_graphml('datasets/bipartite.graphml', node_type=int)
+    graph = nx.read_graphml('datasets/amazon_thousands.graphml', node_type=int)
+
     print("Looking for quasi bicliques with gamma <%s> density; lambda <%s> density "
           "and min. size of U = <%s> and V = <%s>"% (gamma_min, lambda_min, u_min, v_min))
     if not nx.is_bipartite(graph):
         print("Not a bipartite graph")
         return
-    elapsed_time = time.time()  # Starting timer
-
-    # pre_processing(graph) # Passing by reference?
+    # elapsed_time = time.time()  # Starting timer
+    print("Warning! Graph pre-processing disabled\n") if not pre_processing_flag else pre_processing(graph)
+    pre_processing(graph) # Passing by reference?
 
     # After this point, the graph contains a cleaned version of the graph
 
