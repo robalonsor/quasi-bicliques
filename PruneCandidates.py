@@ -71,14 +71,14 @@ def prune_candidates_v(O_u, O_v, candidates_U, candidates_V, cc, gamma_min, lamb
             if not repeat and not first_time:
                 # Watch for this rule since applying more than two technique might cuase problems in the future
                 # TODO: Keep in mind the above comment
-                print("++ Prev. prun. tech. Didn't modify anything, so skipping")  #
+                print("++ Prev. prun. tech. Didn't modify anything, so skipping") if debug_output else False#
                 break
         first_time = False
 
         if debug_output:
             print("****No more candidate pruning for the node in enumeration tree****")
             print("After prun.tech., cand sets are", candidates_U, candidates_V)
-        print("<> Repeating pruning techniques. ") if repeat else False
+        print("<> Repeating pruning techniques. ") if repeat and debug_output else False
 
     candidates_V.sort()
     return candidates_V

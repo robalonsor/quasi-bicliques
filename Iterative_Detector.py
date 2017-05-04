@@ -12,8 +12,8 @@ __author__ = 'Roberto Alonso <robalonsor@gmail.com>'
 # SET = Set Enumeration Tree as defined in [1,2,3]
 
 # Relative size of the QC
-u_min = 5  # minimum size of the quasi-biclique
-v_min = 5  # minimum size of the quasi-biclique
+u_min = 4  # minimum size of the quasi-biclique
+v_min = 3  # minimum size of the quasi-biclique
 
 gamma_min = 0.5  # minimum density of the quasi-biclique
 lambda_min = 0.5  # minimum density of the quasi-biclique
@@ -270,6 +270,7 @@ def get_quasi_bicliques():
     # graph = nx.read_graphml('datasets/toy_bipartite.graphml', node_type=int)
     # graph = nx.read_graphml('datasets/bipartite.graphml', node_type=int)
     graph = nx.read_graphml('datasets/amazon_thousands.graphml', node_type=int)
+    # graph = nx.read_graphml('datasets/bipartite_diameter.graphml', node_type=int)
 
     print("Looking for quasi bicliques with gamma <%s> density; lambda <%s> density "
           "and min. size of U = <%s> and V = <%s>"% (gamma_min, lambda_min, u_min, v_min))
