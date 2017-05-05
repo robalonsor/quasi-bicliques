@@ -15,6 +15,11 @@ def prune_candidates_u(O_u, O_v, candidates_U, candidates_V, cc, gamma_min, lamb
     # dict_of_prun_tech = {'diameter': prune_based_on_diameter}
 
     # For each pruning technique (defined in dictionary and in module), prune candidates
+    
+    # G.remove_nodes_from([ n in G if n not in set(nbunch)])
+    # cc_subgraph = nx.Graph(cc)
+    # cc_subgraph.remove_nodes_from([n for n in cc if n not in O_u + O_v + candidates_U + candidates_V])
+
     cc_subgraph = cc.subgraph(O_u + O_v + candidates_U + candidates_V)
     print("\n*-Starting all pruning techniques.-*\n") if debug_output else False
     repeat = True
@@ -55,6 +60,9 @@ def prune_candidates_v(O_u, O_v, candidates_U, candidates_V, cc, gamma_min, lamb
     dict_of_prun_tech = {'degree': prune_based_on_degree, 'diameter': prune_based_on_diameter}
 
     # For each pruning technique (defined in dictionary and in module), prune candidates
+    # cc_subgraph = nx.Graph(cc)
+    # cc_subgraph.remove_nodes_from([n for n in cc if n not in O_u + O_v + candidates_U + candidates_V])
+
     cc_subgraph = cc.subgraph(O_u + O_v + candidates_U + candidates_V)
     print("\n*-Starting all pruning techniques.-*\n") if debug_output else False
     repeat = True
