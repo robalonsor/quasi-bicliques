@@ -1,7 +1,7 @@
 #!/usr/bin python3
 
 import networkx as nx
-
+import numpy as np
 
 def prune_candidates_u(O_u, O_v, candidates_U, candidates_V, cc, gamma_min, lambda_min):
     debug_output = False
@@ -20,7 +20,14 @@ def prune_candidates_u(O_u, O_v, candidates_U, candidates_V, cc, gamma_min, lamb
     # cc_subgraph = nx.Graph(cc)
     # cc_subgraph.remove_nodes_from([n for n in cc if n not in O_u + O_v + candidates_U + candidates_V])
 
-    cc_subgraph = cc.subgraph(O_u + O_v + candidates_U + candidates_V)
+    to_extract = np.array(O_u + O_v + candidates_U + candidates_V)
+    A = nx.to_scipy_sparse_matrix(cc, format='lil')
+    print(A)
+    exit()
+    A_sub = A[to_extract, to_extract].copy()
+    cc_subgraph = nx.Graph(A_sub)
+
+    # cc_subgraph = cc.subgraph(O_u + O_v + candidates_U + candidates_V)
     print("\n*-Starting all pruning techniques.-*\n") if debug_output else False
     repeat = True
     first_time = True

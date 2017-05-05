@@ -1,9 +1,11 @@
 #!/usr/bin python3
-import networkx as nx
 from operator import itemgetter
 import time  # Only works in Linux
 import itertools
 import PruneCandidates
+import networkx as nx
+# from graph_tool.all import *
+
 
 __author__ = 'Roberto Alonso <robalonsor@gmail.com>'
 
@@ -238,9 +240,11 @@ def pre_processing(graph):
     min_v_edges = round(gamma_min * u_min) # min, num. edges from U to V
     # print(min_u_edges, min_v_edges)
     if debug_pre_processing:
+        # print(graph.vp.color[graph.vertex(0)])
         u_before = len([n for n, d in graph.nodes_iter(data=True) if d['color'] == 'red'])
         v_before = len([n for n, d in graph.nodes_iter(data=True) if d['color'] == 'blue'])
         print("Before pre-processing. |U| = %s  |V| = %s" % (u_before, v_before)) if debug_pre_processing else False
+        # exit()
     keep_cleaning = True
     while keep_cleaning:
         keep_cleaning = False
@@ -271,12 +275,14 @@ def get_quasi_bicliques():
     # graph = nx.read_graphml('datasets/bipartite.graphml', node_type=int)
     # graph = nx.read_graphml('datasets/amazon_thousands.graphml', node_type=int)
     graph = nx.read_graphml('datasets/bipartite_diameter.graphml', node_type=int)
+    # graph = load_graph('datasets/bipartite_diameter.graphml')
 
     print("Looking for quasi bicliques with gamma <%s> density; lambda <%s> density "
           "and min. size of U = <%s> and V = <%s>"% (gamma_min, lambda_min, u_min, v_min))
-    if not nx.is_bipartite(graph):
-        print("Not a bipartite graph")
-        return
+
+    # if not is_bipartite(graph):
+    #     print("Not a bipartite graph")
+    #     return
     # elapsed_time = time.time()  # Starting timer
     print("Warning! Graph pre-processing disabled\n") if not pre_processing_flag else pre_processing(graph)
     pre_processing(graph) # Passing by reference?
